@@ -1,0 +1,48 @@
+/* Custom styles for Latino Laundry System landing page */
+body {
+    background: linear-gradient(135deg, #e0f2fe 0%, #d1fae5 100%);
+}
+header {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+h1 {
+    color: #2563eb;
+}
+section {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 2rem;
+    padding: 2rem;
+}
+a {
+    transition: background 0.2s;
+}
+a.login {
+    background: #2563eb;
+    color: #fff;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-right: 0.5rem;
+    text-decoration: none;
+}
+a.signup {
+    background: #16a34a;
+    color: #fff;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+}
+a.login:hover {
+    background: #1d4ed8;
+}
+a.signup:hover {
+    background: #15803d;
+}
+footer {
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    color: #6b7280;
+    padding: 1rem;
+    text-align: center;
+}

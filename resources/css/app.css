@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Make sure this file is processed by Tailwind CLI or a build tool like Laravel Mix, Vite, or Webpack */
