@@ -12,6 +12,11 @@ Route::get('/', function () {
     return view('landing'); // resources/views/landing.blade.php
 });
 
+// Test route for data table
+Route::get('/test-datatable', function () {
+    return view('test-datatable');
+})->name('test.datatable');
+
 // Default dashboard route - redirects based on user role
 Route::get('/dashboard', function () {
     $user = auth()->user();

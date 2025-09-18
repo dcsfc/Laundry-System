@@ -82,6 +82,10 @@ class UserController extends Controller
             ['label' => 'Delete', 'onclick' => 'deleteUser']
         ];
         
+        // Debug: Log the data being passed to the view
+        \Log::info('UserController - Users count: ' . $users->count());
+        \Log::info('UserController - First user: ' . json_encode($users->first()));
+        
         return view('superadmin.users.usermanagement', compact('roles', 'users', 'columns', 'actions'));
     }
 

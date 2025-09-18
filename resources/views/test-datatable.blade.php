@@ -6,64 +6,42 @@
     <title>Test Data Table</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    @vite('resources/js/app.js')
 </head>
 <body class="bg-gray-100 p-8">
-    <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">Data Table Test</h1>
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-gray-800">Data Table Test</h1>
         
-        <div class="mb-4">
-            <p class="text-sm text-gray-600">Testing if dataTable function is available:</p>
-            <p id="test-result" class="text-sm font-mono"></p>
+        <!-- Simple Alpine.js Test -->
+        <div x-data="{ message: 'Alpine.js is working!' }" class="mb-8 p-4 bg-green-100 border border-green-400 rounded">
+            <p x-text="message"></p>
         </div>
         
-        <x-data-table
-            :columns="$columns"
-            :data="$users"
-            :actions="$actions"
+        <!-- Test Simple Data Table Component -->
+        <x-simple-data-table 
+            :columns="[
+                ['key' => 'id', 'label' => 'ID'],
+                ['key' => 'name', 'label' => 'Name'],
+                ['key' => 'email', 'label' => 'Email'], 
+                ['key' => 'status', 'label' => 'Status'],
+                ['key' => 'created_at', 'label' => 'Created At']
+            ]" 
+            :data="[
+                ['id' => 1, 'name' => 'Test User 1', 'email' => 'test1@example.com', 'status' => 'active', 'created_at' => '2024-01-01'],
+                ['id' => 2, 'name' => 'Test User 2', 'email' => 'test2@example.com', 'status' => 'inactive', 'created_at' => '2024-01-02'],
+                ['id' => 3, 'name' => 'Test User 3', 'email' => 'test3@example.com', 'status' => 'pending', 'created_at' => '2024-01-03']
+            ]" 
+            :actions="[
+                ['label' => 'View'],
+                ['label' => 'Edit'],
+                ['label' => 'Delete']
+            ]"
+            title="Test Data Table"
+            description="Testing the simple data table component"
             :searchable="true"
             :sortable="true"
             :pagination="true"
-            :page-size="10"
-            :empty-message="'No data found'"
-            :title="'Test Users'"
-            :description="'A simple test of the data table component'"
+            :pageSize="10"
         />
     </div>
-
-    <script>
-        // Test if dataTable function is available
-        document.addEventListener('DOMContentLoaded', function() {
-            const testResult = document.getElementById('test-result');
-            if (typeof window.dataTable === 'function') {
-                testResult.textContent = '✅ dataTable function is available';
-                testResult.className = 'text-sm font-mono text-green-600';
-                
-                // Debug: Check if Alpine is working
-                setTimeout(() => {
-                    const alpineElement = document.querySelector('[x-data]');
-                    if (alpineElement) {
-                        console.log('Alpine element found:', alpineElement);
-                        console.log('Alpine data:', alpineElement._x_dataStack);
-                    } else {
-                        console.log('No Alpine element found');
-                    }
-                }, 1000);
-            } else {
-                testResult.textContent = '❌ dataTable function is NOT available';
-                testResult.className = 'text-sm font-mono text-red-600';
-            }
-        });
-
-        function viewUser(row) {
-            console.log('View user:', row);
-            alert('View user: ' + row.id + ' - ' + row.name);
-        }
-
-        function editUser(row) {
-            console.log('Edit user:', row);
-            alert('Edit user: ' + row.id + ' - ' + row.name);
-        }
-    </script>
 </body>
 </html>
