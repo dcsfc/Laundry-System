@@ -27,7 +27,8 @@
             :add-button-action="'addUser'"
             :show-role-filter="true"
             :available-roles="$roles"
-            :color-scheme="'indigo'"
+            formType="user"
+            colorScheme="indigo"
         />
     </div>
 

@@ -25,6 +25,8 @@
             :add-button="true"
             :add-button-label="'Add New Item'"
             :add-button-action="'addInventoryItem'"
+            formType="inventory"
+            colorScheme="emerald"
         />
     </div>
 

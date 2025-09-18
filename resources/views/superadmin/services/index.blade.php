@@ -24,6 +24,8 @@
             :add-button="true"
             :add-button-label="'Add New Service'"
             :add-button-action="'addService'"
+            formType="service"
+            colorScheme="sky"
         />
     </div>
 

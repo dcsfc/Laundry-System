@@ -19,9 +19,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Total Orders</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $totalOrders ?? 12 }}</p>
+                        <p class="text-slate-50 text-2xl font-bold">{{ $totalOrders }}</p>
                         <p class="text-emerald-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+3 this month
+                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $monthlyOrderGrowth }} this month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -36,9 +36,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Completed</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $completedOrders ?? 8 }}</p>
+                        <p class="text-slate-50 text-2xl font-bold">{{ $completedOrders }}</p>
                         <p class="text-teal-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-check mr-1 text-xs"></i>67% completion rate
+                            <i class="fas fa-check mr-1 text-xs"></i>{{ $completionRate }}% completion rate
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -53,7 +53,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">In Progress</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $pendingOrders ?? 3 }}</p>
+                        <p class="text-slate-50 text-2xl font-bold">{{ $pendingOrders }}</p>
                         <p class="text-emerald-400 text-sm font-medium mt-1 flex items-center">
                             <i class="fas fa-clock mr-1 text-xs"></i>Processing now
                         </p>
@@ -70,9 +70,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Total Spent</p>
-                        <p class="text-slate-50 text-2xl font-bold">₱{{ number_format($totalSpent ?? 1250, 2) }}</p>
+                        <p class="text-slate-50 text-2xl font-bold">₱{{ number_format($totalSpent, 2) }}</p>
                         <p class="text-teal-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+15% this month
+                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $monthlyGrowth }}% this month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -133,33 +133,31 @@
                     </a>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-emerald-500">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Order #1234 - Completed</h4>
-                            <p class="text-slate-400 text-sm">Wash & Fold Service - 5 items</p>
-                            <p class="text-slate-500 text-xs mt-1">Picked up 2 hours ago</p>
+                    @forelse($recentOrders as $order)
+                        @php
+                            $statusColors = [
+                                'Scheduled' => ['bg' => 'border-emerald-400', 'dot' => 'bg-emerald-400', 'badge' => 'bg-emerald-500/20 text-emerald-400'],
+                                'In Progress' => ['bg' => 'border-teal-400', 'dot' => 'bg-teal-400', 'badge' => 'bg-teal-500/20 text-teal-400'],
+                                'Completed' => ['bg' => 'border-emerald-500', 'dot' => 'bg-emerald-500', 'badge' => 'bg-emerald-500/20 text-emerald-500']
+                            ];
+                            $statusColor = $statusColors[$order['status']] ?? ['bg' => 'border-slate-400', 'dot' => 'bg-slate-400', 'badge' => 'bg-slate-500/20 text-slate-400'];
+                        @endphp
+                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 {{ $statusColor['bg'] }}">
+                            <div class="w-2 h-2 {{ $statusColor['dot'] }} rounded-full mt-2"></div>
+                            <div class="flex-1">
+                                <h4 class="text-slate-50 font-medium">Order #{{ $order['id'] }} - {{ $order['status'] }}</h4>
+                                <p class="text-slate-400 text-sm">{{ $order['service_type'] }} - ₱{{ number_format($order['total_price'], 2) }}</p>
+                                <p class="text-slate-500 text-xs mt-1">{{ $order['created_at'] }}</p>
+                            </div>
+                            <span class="px-2 py-1 {{ $statusColor['badge'] }} text-xs rounded-full">{{ $order['status'] }}</span>
                         </div>
-                        <span class="px-2 py-1 bg-emerald-500/20 text-emerald-500 text-xs rounded-full">Completed</span>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-teal-400">
-                        <div class="w-2 h-2 bg-teal-400 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Order #1235 - In Progress</h4>
-                            <p class="text-slate-400 text-sm">Dry Cleaning - 3 items</p>
-                            <p class="text-slate-500 text-xs mt-1">Expected completion: Tomorrow</p>
+                    @empty
+                        <div class="text-center py-8">
+                            <i class="fas fa-shopping-bag text-4xl text-slate-500 mb-4"></i>
+                            <h3 class="text-lg font-medium text-slate-300 mb-2">No recent orders</h3>
+                            <p class="text-slate-400">You haven't placed any orders yet.</p>
                         </div>
-                        <span class="px-2 py-1 bg-teal-500/20 text-teal-400 text-xs rounded-full">Processing</span>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-emerald-400">
-                        <div class="w-2 h-2 bg-emerald-400 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Order #1236 - Scheduled</h4>
-                            <p class="text-slate-400 text-sm">Wash & Fold Service - 8 items</p>
-                            <p class="text-slate-500 text-xs mt-1">Drop-off: Tomorrow 9 AM</p>
-                        </div>
-                        <span class="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">Scheduled</span>
-                    </div>
+                    @endforelse
                 </div>
             </div>
 
@@ -172,36 +170,32 @@
                     </button>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-calendar-plus text-emerald-500 text-sm"></i>
+                    @forelse($upcomingSchedules as $schedule)
+                        @php
+                            $statusColors = [
+                                'Scheduled' => ['bg' => 'bg-emerald-500/20', 'icon' => 'fas fa-calendar-plus text-emerald-500'],
+                                'Confirmed' => ['bg' => 'bg-teal-500/20', 'icon' => 'fas fa-calendar-check text-teal-500'],
+                                'Pending' => ['bg' => 'bg-yellow-500/20', 'icon' => 'fas fa-clock text-yellow-500']
+                            ];
+                            $statusColor = $statusColors[$schedule['status']] ?? ['bg' => 'bg-slate-500/20', 'icon' => 'fas fa-calendar text-slate-500'];
+                        @endphp
+                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
+                            <div class="w-8 h-8 {{ $statusColor['bg'] }} rounded-full flex items-center justify-center">
+                                <i class="{{ $statusColor['icon'] }} text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-slate-50 font-medium">{{ $schedule['service_type'] }} - {{ $schedule['status'] }}</h4>
+                                <p class="text-slate-400 text-sm">Drop-off: {{ $schedule['dropoff_date'] }} at {{ $schedule['dropoff_time'] }}</p>
+                                <p class="text-slate-500 text-xs mt-1">Pickup: {{ $schedule['pickup_date'] }} at {{ $schedule['pickup_time'] }}</p>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Drop-off Scheduled</h4>
-                            <p class="text-slate-400 text-sm">Tomorrow, 9:00 AM - 10:00 AM</p>
-                            <p class="text-slate-500 text-xs mt-1">Order #1236</p>
+                    @empty
+                        <div class="text-center py-8">
+                            <i class="fas fa-calendar-alt text-4xl text-slate-500 mb-4"></i>
+                            <h3 class="text-lg font-medium text-slate-300 mb-2">No upcoming schedules</h3>
+                            <p class="text-slate-400">You don't have any scheduled appointments.</p>
                         </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-calendar-check text-teal-500 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Pickup Available</h4>
-                            <p class="text-slate-400 text-sm">Today, 2:00 PM - 6:00 PM</p>
-                            <p class="text-slate-500 text-xs mt-1">Order #1235</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-bell text-emerald-500 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Reminder</h4>
-                            <p class="text-slate-400 text-sm">Order #1234 ready for pickup</p>
-                            <p class="text-slate-500 text-xs mt-1">2 hours ago</p>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>

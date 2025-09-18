@@ -93,6 +93,7 @@
       padding: 20px;
       min-height: calc(100vh - 70px);
       background: #0f172a;
+      transition: margin-left 0.3s ease-in-out;
     }
     .main-content.sidebar-collapsed {
       margin-left: 80px;
@@ -128,7 +129,7 @@
 <body>
   @include('components.header')
   <!-- Sidebar -->
-  <div class="sidebar fixed top-14 left-0 w-60 h-[calc(100vh-3.5rem)] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-{{ $accentColor }}-500/20 z-[100] flex flex-col shadow-2xl transition-all duration-300 ease-in-out" id="sidebar">
+  <div class="sidebar fixed top-14 left-0 w-60 h-[calc(100vh-3.5rem)] bg-slate-900 border-r border-{{ $accentColor }}-500/20 z-[100] flex flex-col shadow-2xl transition-all duration-300 ease-in-out" id="sidebar">
     <!-- Navigation -->
     <div class="sidebar-nav flex-1 overflow-y-auto py-6 px-3 scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600">
 

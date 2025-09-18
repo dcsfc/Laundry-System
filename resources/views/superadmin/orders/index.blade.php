@@ -24,7 +24,8 @@
             :add-button="true"
             :add-button-label="'Add New Order'"
             :add-button-action="'addOrder'"
-            :color-scheme="'indigo'"
+            formType="order"
+            colorScheme="blue"
         />
     </div>
 

@@ -24,6 +24,8 @@
             :add-button="true"
             :add-button-label="'Record Payment'"
             :add-button-action="'recordPayment'"
+            formType="payment"
+            colorScheme="green"
         />
     </div>
 

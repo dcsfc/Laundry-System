@@ -3,7 +3,12 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Payment;
+use App\Models\Order;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
@@ -12,53 +17,24 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        // Sample payments data for the reusable data table component
-        $payments = collect([
-            [
-                'id' => 1,
-                'order_id' => 101,
-                'customer_name' => 'Maria Santos',
-                'amount' => 150.00,
-                'payment_method' => 'Cash',
-                'payment_status' => 'Paid',
-                'reference_number' => 'CASH-001',
-                'paid_at' => '2024-01-15 10:30:00',
-                'recorded_by' => 'Staff Member'
-            ],
-            [
-                'id' => 2,
-                'order_id' => 102,
-                'customer_name' => 'Jose Garcia',
-                'amount' => 200.00,
-                'payment_method' => 'GCash',
-                'payment_status' => 'Paid',
-                'reference_number' => 'GCASH-789456123',
-                'paid_at' => '2024-01-14 14:20:00',
-                'recorded_by' => 'Admin User'
-            ],
-            [
-                'id' => 3,
-                'order_id' => 103,
-                'customer_name' => 'Ana Cruz',
-                'amount' => 300.00,
-                'payment_method' => 'Credit Card',
-                'payment_status' => 'Pending',
-                'reference_number' => 'CC-456789123',
-                'paid_at' => null,
-                'recorded_by' => 'Staff Member'
-            ],
-            [
-                'id' => 4,
-                'order_id' => 104,
-                'customer_name' => 'Carlos Reyes',
-                'amount' => 120.00,
-                'payment_method' => 'PayPal',
-                'payment_status' => 'Failed',
-                'reference_number' => 'PP-987654321',
-                'paid_at' => null,
-                'recorded_by' => 'Admin User'
-            ]
-        ]);
+        // Get real payments data from database with relationships
+        $payments = Payment::with(['order.customer', 'recordedBy'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($payment) {
+                return [
+                    'id' => $payment->id,
+                    'order_id' => $payment->order_id,
+                    'customer_name' => $payment->order->customer->name ?? 'N/A',
+                    'amount' => number_format($payment->amount, 2),
+                    'payment_method' => ucfirst(str_replace('_', ' ', $payment->payment_method)),
+                    'payment_status' => ucfirst($payment->payment_status),
+                    'reference_number' => $payment->reference_number ?? 'N/A',
+                    'paid_at' => $payment->paid_at ? Carbon::parse($payment->paid_at)->format('M j, Y g:i A') : 'Not paid',
+                    'recorded_by' => $payment->recordedBy->name ?? 'System',
+                    'created_at' => $payment->created_at->format('M j, Y g:i A')
+                ];
+            });
 
         // Define columns for the data table
         $columns = [
@@ -91,7 +67,11 @@ class PaymentController extends Controller
      */
     public function create()
     {
-        return view('superadmin.payments.create');
+        $orders = Order::with('customer')
+            ->where('payment_status', 'unpaid')
+            ->get();
+        
+        return view('superadmin.payments.create', compact('orders'));
     }
 
     /**
@@ -99,8 +79,34 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
-        // Validation and storage logic will go here
-        return redirect()->route('superadmin.payments.index')->with('success', 'Payment created successfully');
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|in:cash,gcash,credit_card,paypal',
+            'payment_status' => 'required|in:pending,paid,failed',
+            'reference_number' => 'nullable|string|max:100'
+        ]);
+
+        $payment = Payment::create([
+            'order_id' => $request->order_id,
+            'amount' => $request->amount,
+            'payment_method' => $request->payment_method,
+            'payment_status' => $request->payment_status,
+            'reference_number' => $request->reference_number,
+            'recorded_by' => Auth::id(),
+            'paid_at' => $request->payment_status === 'paid' ? now() : null
+        ]);
+
+        // Update order payment status if payment is marked as paid
+        if ($request->payment_status === 'paid') {
+            $order = Order::find($request->order_id);
+            $order->update([
+                'payment_status' => 'paid',
+                'payment_method' => $request->payment_method
+            ]);
+        }
+
+        return redirect()->route('superadmin.payments.index')->with('success', 'Payment recorded successfully');
     }
 
     /**
@@ -108,7 +114,9 @@ class PaymentController extends Controller
      */
     public function show(string $id)
     {
-        return view('superadmin.payments.show', compact('id'));
+        $payment = Payment::with(['order.customer', 'recordedBy'])->findOrFail($id);
+        
+        return view('superadmin.payments.show', compact('payment'));
     }
 
     /**
@@ -116,7 +124,10 @@ class PaymentController extends Controller
      */
     public function edit(string $id)
     {
-        return view('superadmin.payments.edit', compact('id'));
+        $payment = Payment::with(['order.customer'])->findOrFail($id);
+        $orders = Order::with('customer')->get();
+        
+        return view('superadmin.payments.edit', compact('payment', 'orders'));
     }
 
     /**
@@ -124,7 +135,35 @@ class PaymentController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Update logic will go here
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|in:cash,gcash,credit_card,paypal',
+            'payment_status' => 'required|in:pending,paid,failed',
+            'reference_number' => 'nullable|string|max:100'
+        ]);
+
+        $payment = Payment::findOrFail($id);
+        $oldStatus = $payment->payment_status;
+        
+        $payment->update([
+            'order_id' => $request->order_id,
+            'amount' => $request->amount,
+            'payment_method' => $request->payment_method,
+            'payment_status' => $request->payment_status,
+            'reference_number' => $request->reference_number,
+            'paid_at' => $request->payment_status === 'paid' ? now() : null
+        ]);
+
+        // Update order payment status if payment status changed to paid
+        if ($oldStatus !== 'paid' && $request->payment_status === 'paid') {
+            $order = Order::find($request->order_id);
+            $order->update([
+                'payment_status' => 'paid',
+                'payment_method' => $request->payment_method
+            ]);
+        }
+
         return redirect()->route('superadmin.payments.index')->with('success', 'Payment updated successfully');
     }
 
@@ -133,7 +172,9 @@ class PaymentController extends Controller
      */
     public function destroy(string $id)
     {
-        // Delete logic will go here
+        $payment = Payment::findOrFail($id);
+        $payment->delete();
+
         return redirect()->route('superadmin.payments.index')->with('success', 'Payment deleted successfully');
     }
 }

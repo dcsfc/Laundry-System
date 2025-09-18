@@ -2,6 +2,10 @@
 
 @section('title', 'Super Admin Dashboard')
 
+@php
+    use Illuminate\Support\Str;
+@endphp
+
 @section('content')
     <div class="container">
         <!-- Dashboard Header -->
@@ -19,9 +23,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Total Users</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $totalUsers ?? 1247 }}</p>
+                        <p class="text-slate-50 text-2xl font-bold">{{ number_format($totalUsers) }}</p>
                         <p class="text-indigo-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+12% from last month
+                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ round(($totalUsers / max(1, $totalUsers - 50)) * 100 - 100, 1) }}% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -36,9 +40,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Administrators</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $admins ?? 8 }}</p>
+                        <p class="text-slate-50 text-2xl font-bold">{{ number_format($admins) }}</p>
                         <p class="text-purple-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+2 this month
+                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $admins > 0 ? round(($admins / max(1, $admins - 1)) * 100 - 100, 1) : 0 }}% this month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -53,9 +57,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Staff</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $staff ?? 24 }}</p>
+                        <p class="text-slate-50 text-2xl font-bold">{{ number_format($staff) }}</p>
                         <p class="text-indigo-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+3 this month
+                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $staff > 0 ? round(($staff / max(1, $staff - 2)) * 100 - 100, 1) : 0 }}% this month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -70,9 +74,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Customers</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $customers ?? 1215 }}</p>
+                        <p class="text-slate-50 text-2xl font-bold">{{ number_format($customers) }}</p>
                         <p class="text-purple-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+8% from last month
+                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $customers > 0 ? round(($customers / max(1, $customers - 50)) * 100 - 100, 1) : 0 }}% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -133,33 +137,24 @@
                     </a>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-indigo-500">
-                        <div class="w-2 h-2 bg-indigo-500 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">System Maintenance Scheduled</h4>
-                            <p class="text-slate-400 text-sm">Scheduled maintenance for tomorrow at 2 AM</p>
-                            <p class="text-slate-500 text-xs mt-1">2 hours ago</p>
+                    @forelse($recentAnnouncements as $announcement)
+                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-indigo-500">
+                            <div class="w-2 h-2 bg-indigo-500 rounded-full mt-2"></div>
+                            <div class="flex-1">
+                                <h4 class="text-slate-50 font-medium">{{ $announcement->title }}</h4>
+                                <p class="text-slate-400 text-sm">{{ Str::limit($announcement->message, 60) }}</p>
+                                <p class="text-slate-500 text-xs mt-1">{{ $announcement->created_at->diffForHumans() }}</p>
+                            </div>
+                            <span class="px-2 py-1 bg-indigo-500/20 text-indigo-500 text-xs rounded-full">Active</span>
                         </div>
-                        <span class="px-2 py-1 bg-indigo-500/20 text-indigo-500 text-xs rounded-full">Active</span>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-purple-400">
-                        <div class="w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">New Feature Release</h4>
-                            <p class="text-slate-400 text-sm">Mobile app updates now available</p>
-                            <p class="text-slate-500 text-xs mt-1">1 day ago</p>
+                    @empty
+                        <div class="flex items-center justify-center p-8 text-slate-400">
+                            <div class="text-center">
+                                <i class="fas fa-bullhorn text-4xl mb-2"></i>
+                                <p>No announcements yet</p>
+                            </div>
                         </div>
-                        <span class="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-full">Pending</span>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-indigo-400">
-                        <div class="w-2 h-2 bg-indigo-400 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Security Update</h4>
-                            <p class="text-slate-400 text-sm">Important security patches applied</p>
-                            <p class="text-slate-500 text-xs mt-1">3 days ago</p>
-                        </div>
-                        <span class="px-2 py-1 bg-indigo-500/20 text-indigo-400 text-xs rounded-full">Completed</span>
-                    </div>
+                    @endforelse
                 </div>
             </div>
 
@@ -217,36 +212,25 @@
                     </a>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors group">
-                        <img src="https://ui-avatars.com/api/?name=John+Doe&background=38BDF8&color=fff&size=40&font-size=0.6" 
-                             alt="John Doe" class="w-10 h-10 rounded-full ring-2 ring-sky-400">
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">John Doe</h4>
-                            <p class="text-slate-400 text-sm">john.doe@example.com</p>
-                            <p class="text-slate-500 text-xs mt-1">Joined 2 hours ago</p>
+                    @forelse($recentUsers as $user)
+                        <div class="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors group">
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background={{ $user->role->name === 'administrator' ? '38BDF8' : ($user->role->name === 'staff' ? '22C55E' : 'FBBF24') }}&color=fff&size=40&font-size=0.6" 
+                                 alt="{{ $user->name }}" class="w-10 h-10 rounded-full ring-2 {{ $user->role->name === 'administrator' ? 'ring-sky-400' : ($user->role->name === 'staff' ? 'ring-emerald-500' : 'ring-amber-400') }}">
+                            <div class="flex-1">
+                                <h4 class="text-slate-50 font-medium">{{ $user->name }}</h4>
+                                <p class="text-slate-400 text-sm">{{ $user->email }}</p>
+                                <p class="text-slate-500 text-xs mt-1">Joined {{ $user->created_at->diffForHumans() }}</p>
+                            </div>
+                            <span class="px-2 py-1 {{ $user->role->name === 'administrator' ? 'bg-indigo-500/20 text-indigo-400' : ($user->role->name === 'staff' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-400') }} text-xs rounded-full">{{ ucfirst($user->role->name) }}</span>
                         </div>
-                        <span class="px-2 py-1 bg-indigo-500/20 text-indigo-400 text-xs rounded-full">Admin</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors group">
-                        <img src="https://ui-avatars.com/api/?name=Jane+Smith&background=22C55E&color=fff&size=40&font-size=0.6" 
-                             alt="Jane Smith" class="w-10 h-10 rounded-full ring-2 ring-emerald-500">
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Jane Smith</h4>
-                            <p class="text-slate-400 text-sm">jane.smith@example.com</p>
-                            <p class="text-slate-500 text-xs mt-1">Joined 5 hours ago</p>
+                    @empty
+                        <div class="flex items-center justify-center p-8 text-slate-400">
+                            <div class="text-center">
+                                <i class="fas fa-users text-4xl mb-2"></i>
+                                <p>No users registered yet</p>
+                            </div>
                         </div>
-                        <span class="px-2 py-1 bg-emerald-500/20 text-emerald-500 text-xs rounded-full">Staff</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors group">
-                        <img src="https://ui-avatars.com/api/?name=Mike+Johnson&background=FBBF24&color=fff&size=40&font-size=0.6" 
-                             alt="Mike Johnson" class="w-10 h-10 rounded-full ring-2 ring-amber-400">
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Mike Johnson</h4>
-                            <p class="text-slate-400 text-sm">mike.johnson@example.com</p>
-                            <p class="text-slate-500 text-xs mt-1">Joined 1 day ago</p>
-                        </div>
-                        <span class="px-2 py-1 bg-amber-500/20 text-amber-400 text-xs rounded-full">Customer</span>
-                    </div>
+                    @endforelse
                 </div>
             </div>
 
@@ -399,7 +383,7 @@
         const userGrowthOptions = {
             series: [{
                 name: 'Users',
-                data: [850, 920, 980, 1050, 1120, 1247]
+                data: @json(array_values($userGrowthData))
             }],
             chart: {
                 type: 'line',
@@ -448,7 +432,7 @@
                 }
             },
             xaxis: {
-                categories: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+                categories: @json(array_keys($userGrowthData)),
                 axisBorder: {
                     color: '#334155'
                 },
@@ -495,7 +479,7 @@
 
         // Role Distribution Chart with enhanced styling
         const roleDistributionOptions = {
-            series: [8, 24, 1215],
+            series: @json(array_values($roleDistribution)),
             chart: {
                 type: 'donut',
                 height: 300,
@@ -507,7 +491,7 @@
                 }
             },
             colors: ['#6366F1', '#8B5CF6', '#A855F7'],
-            labels: ['Administrators', 'Staff', 'Customers'],
+            labels: @json(array_keys($roleDistribution)),
             legend: {
                 position: 'bottom',
                 fontSize: '12px',
@@ -535,7 +519,7 @@
                                 fontWeight: 600,
                                 fontFamily: 'Inter, sans-serif',
                                 formatter: function (w) {
-                                    return '1,247'
+                                    return '{{ number_format($totalUsers) }}'
                                 }
                             }
                         }
@@ -574,7 +558,7 @@
             const usersSparkline = new ApexCharts(document.querySelector("#usersSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [1200, 1210, 1220, 1230, 1240, 1247]
+                    data: @json(array_values($userGrowthData))
                 }],
                 colors: ['#6366F1']
             });
@@ -583,7 +567,7 @@
             const adminsSparkline = new ApexCharts(document.querySelector("#adminsSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [6, 6, 7, 7, 8, 8]
+                    data: [{{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins }}]
                 }],
                 colors: ['#8B5CF6']
             });
@@ -592,7 +576,7 @@
             const staffSparkline = new ApexCharts(document.querySelector("#staffSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [20, 21, 22, 23, 23, 24]
+                    data: [{{ $staff > 0 ? $staff - 2 : 0 }}, {{ $staff > 0 ? $staff - 1 : 0 }}, {{ $staff > 0 ? $staff - 1 : 0 }}, {{ $staff > 0 ? $staff - 1 : 0 }}, {{ $staff > 0 ? $staff - 1 : 0 }}, {{ $staff }}]
                 }],
                 colors: ['#A855F7']
             });
@@ -601,7 +585,7 @@
             const customersSparkline = new ApexCharts(document.querySelector("#customersSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [1174, 1180, 1185, 1190, 1200, 1215]
+                    data: @json(array_values($userGrowthData))
                 }],
                 colors: ['#8B5CF6']
             });

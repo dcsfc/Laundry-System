@@ -1,3 +1,9 @@
+# PHP Configuration
+<IfModule mod_php.c>
+    php_value max_execution_time 120
+    php_value memory_limit 256M
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

@@ -5,6 +5,7 @@ use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\SuperAdmin\AnnouncementController;
 use App\Http\Controllers\SuperAdmin\SettingController;
 use App\Http\Controllers\SuperAdmin\ServiceController;
+use App\Http\Controllers\SuperAdmin\DashboardController;
 
 // Landing page
 Route::get('/', function () {
@@ -41,9 +42,7 @@ Route::middleware(['auth'])->group(function () {
      */
     Route::middleware('role:superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {
         // Dashboard
-        Route::get('/dashboard', function () {
-            return view('dashboard.superadmin'); // resources/views/dashboard/superadmin.blade.php
-        })->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // AJAX routes for user management (must come BEFORE resource route)
         Route::get('users/debug', [UserController::class, 'debug'])->name('users.debug');
@@ -72,6 +71,30 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/data-table-orders', function () {
             return view('examples.orders-example');
         })->name('data-table-orders');
+        
+        // Test route for data table
+        Route::get('/test-datatable', function () {
+            $users = [
+                ['id' => 1, 'name' => 'John Doe', 'email' => 'john@example.com', 'status' => 'active', 'created_at' => '2024-01-15'],
+                ['id' => 2, 'name' => 'Jane Smith', 'email' => 'jane@example.com', 'status' => 'inactive', 'created_at' => '2024-01-20'],
+                ['id' => 3, 'name' => 'Bob Johnson', 'email' => 'bob@example.com', 'status' => 'active', 'created_at' => '2024-02-01'],
+            ];
+            
+            $columns = [
+                ['key' => 'id', 'label' => 'ID', 'sortable' => true],
+                ['key' => 'name', 'label' => 'Name', 'sortable' => true],
+                ['key' => 'email', 'label' => 'Email', 'sortable' => true],
+                ['key' => 'status', 'label' => 'Status', 'sortable' => true],
+                ['key' => 'created_at', 'label' => 'Created', 'sortable' => true],
+            ];
+            
+            $actions = [
+                ['label' => 'View', 'onclick' => 'viewUser'],
+                ['label' => 'Edit', 'onclick' => 'editUser'],
+            ];
+            
+            return view('test-datatable', compact('users', 'columns', 'actions'));
+        })->name('test-datatable');
         
         // Individual user routes
         Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
@@ -247,9 +270,7 @@ Route::middleware(['auth'])->group(function () {
      * Name: customer.dashboard
      */
     Route::middleware('role:customer')->prefix('customer')->name('customer.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dashboard.customer'); // resources/views/dashboard/customer.blade.php
-        })->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\CustomerController::class, 'dashboard'])->name('dashboard');
         
         // Schedules Management (Customer can schedule laundry)
         Route::get('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerSchedules'])->name('schedules.index');

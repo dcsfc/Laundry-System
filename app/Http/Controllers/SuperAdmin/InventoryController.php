@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Inventory;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class InventoryController extends Controller
 {
@@ -12,99 +14,28 @@ class InventoryController extends Controller
      */
     public function index()
     {
-        // Sample inventory data for the reusable data table component
-        $inventory = collect([
-            [
-                'id' => 1,
-                'item_name' => 'Ariel Powder Detergent',
-                'quantity' => 25,
-                'unit' => 'kilos',
-                'threshold' => 5,
-                'status' => 'In Stock',
-                'last_updated' => '2024-01-15 10:30:00'
-            ],
-            [
-                'id' => 2,
-                'item_name' => 'Downy Fabric Softener',
-                'quantity' => 15,
-                'unit' => 'bottles',
-                'threshold' => 3,
-                'status' => 'In Stock',
-                'last_updated' => '2024-01-14 14:20:00'
-            ],
-            [
-                'id' => 3,
-                'item_name' => 'Tide Liquid Detergent',
-                'quantity' => 8,
-                'unit' => 'bottles',
-                'threshold' => 5,
-                'status' => 'Low Stock',
-                'last_updated' => '2024-01-13 09:15:00'
-            ],
-            [
-                'id' => 4,
-                'item_name' => 'Breeze Powder Detergent',
-                'quantity' => 0,
-                'unit' => 'kilos',
-                'threshold' => 10,
-                'status' => 'Out of Stock',
-                'last_updated' => '2024-01-12 16:45:00'
-            ],
-            [
-                'id' => 5,
-                'item_name' => 'Surf Powder Detergent',
-                'quantity' => 12,
-                'unit' => 'kilos',
-                'threshold' => 4,
-                'status' => 'In Stock',
-                'last_updated' => '2024-01-11 11:20:00'
-            ],
-            [
-                'id' => 6,
-                'item_name' => 'Comfort Fabric Softener',
-                'quantity' => 6,
-                'unit' => 'bottles',
-                'threshold' => 3,
-                'status' => 'Low Stock',
-                'last_updated' => '2024-01-10 15:30:00'
-            ],
-            [
-                'id' => 7,
-                'item_name' => 'Zonrox Bleach',
-                'quantity' => 20,
-                'unit' => 'bottles',
-                'threshold' => 5,
-                'status' => 'In Stock',
-                'last_updated' => '2024-01-09 08:45:00'
-            ],
-            [
-                'id' => 8,
-                'item_name' => 'Joy Dishwashing Liquid',
-                'quantity' => 18,
-                'unit' => 'bottles',
-                'threshold' => 4,
-                'status' => 'In Stock',
-                'last_updated' => '2024-01-08 13:15:00'
-            ],
-            [
-                'id' => 9,
-                'item_name' => 'Mr. Clean All-Purpose Cleaner',
-                'quantity' => 7,
-                'unit' => 'bottles',
-                'threshold' => 3,
-                'status' => 'Low Stock',
-                'last_updated' => '2024-01-07 16:20:00'
-            ],
-            [
-                'id' => 10,
-                'item_name' => 'Clorox Disinfectant',
-                'quantity' => 14,
-                'unit' => 'bottles',
-                'threshold' => 4,
-                'status' => 'In Stock',
-                'last_updated' => '2024-01-06 10:10:00'
-            ]
-        ]);
+        // Get real inventory data from database
+        $inventory = Inventory::orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                // Determine status based on quantity and threshold
+                $status = 'In Stock';
+                if ($item->quantity == 0) {
+                    $status = 'Out of Stock';
+                } elseif ($item->quantity <= $item->threshold) {
+                    $status = 'Low Stock';
+                }
+
+                return [
+                    'id' => $item->id,
+                    'item_name' => $item->item_name,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit,
+                    'threshold' => $item->threshold,
+                    'status' => $status,
+                    'last_updated' => $item->updated_at->format('M j, Y g:i A')
+                ];
+            });
 
         // Define columns for the data table
         $columns = [
@@ -143,7 +74,20 @@ class InventoryController extends Controller
      */
     public function store(Request $request)
     {
-        // Validation and storage logic will go here
+        $request->validate([
+            'item_name' => 'required|string|max:100',
+            'quantity' => 'required|integer|min:0',
+            'unit' => 'required|string|max:50',
+            'threshold' => 'required|integer|min:0'
+        ]);
+
+        Inventory::create([
+            'item_name' => $request->item_name,
+            'quantity' => $request->quantity,
+            'unit' => $request->unit,
+            'threshold' => $request->threshold
+        ]);
+
         return redirect()->route('superadmin.inventory.index')->with('success', 'Inventory item created successfully');
     }
 
@@ -152,7 +96,19 @@ class InventoryController extends Controller
      */
     public function show(string $id)
     {
-        return view('superadmin.inventory.show', compact('id'));
+        $item = Inventory::findOrFail($id);
+        
+        // Determine status
+        $status = 'In Stock';
+        if ($item->quantity == 0) {
+            $status = 'Out of Stock';
+        } elseif ($item->quantity <= $item->threshold) {
+            $status = 'Low Stock';
+        }
+        
+        $item->status = $status;
+        
+        return view('superadmin.inventory.show', compact('item'));
     }
 
     /**
@@ -160,7 +116,9 @@ class InventoryController extends Controller
      */
     public function edit(string $id)
     {
-        return view('superadmin.inventory.edit', compact('id'));
+        $item = Inventory::findOrFail($id);
+        
+        return view('superadmin.inventory.edit', compact('item'));
     }
 
     /**
@@ -168,7 +126,22 @@ class InventoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Update logic will go here
+        $request->validate([
+            'item_name' => 'required|string|max:100',
+            'quantity' => 'required|integer|min:0',
+            'unit' => 'required|string|max:50',
+            'threshold' => 'required|integer|min:0'
+        ]);
+
+        $item = Inventory::findOrFail($id);
+        
+        $item->update([
+            'item_name' => $request->item_name,
+            'quantity' => $request->quantity,
+            'unit' => $request->unit,
+            'threshold' => $request->threshold
+        ]);
+
         return redirect()->route('superadmin.inventory.index')->with('success', 'Inventory item updated successfully');
     }
 
@@ -177,7 +150,9 @@ class InventoryController extends Controller
      */
     public function destroy(string $id)
     {
-        // Delete logic will go here
+        $item = Inventory::findOrFail($id);
+        $item->delete();
+
         return redirect()->route('superadmin.inventory.index')->with('success', 'Inventory item deleted successfully');
     }
 }

@@ -3,7 +3,12 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\User;
+use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -12,69 +17,26 @@ class OrderController extends Controller
      */
     public function index()
     {
-        // Sample orders data for the reusable data table component
-        $orders = collect([
-            [
-                'id' => 1,
-                'customer_name' => 'Maria Santos',
-                'customer_email' => 'maria.santos@gmail.com',
-                'service_type' => 'Wash & Fold',
-                'status' => 'In Progress',
-                'total_price' => 750.00,
-                'dropoff_date' => 'Sept 9, 2024',
-                'pickup_date' => 'Sept 11, 2024',
-                'payment_status' => 'Paid',
-                'created_at' => 'Sept 9, 2024 10:30 AM'
-            ],
-            [
-                'id' => 2,
-                'customer_name' => 'Jose Garcia',
-                'customer_email' => 'jose.garcia@yahoo.com',
-                'service_type' => 'Dry Clean',
-                'status' => 'Completed',
-                'total_price' => 1000.00,
-                'dropoff_date' => 'Sept 8, 2024',
-                'pickup_date' => 'Sept 10, 2024',
-                'payment_status' => 'Paid',
-                'created_at' => 'Sept 8, 2024 2:20 PM'
-            ],
-            [
-                'id' => 3,
-                'customer_name' => 'Ana Dela Cruz',
-                'customer_email' => 'ana.delacruz@outlook.com',
-                'service_type' => 'Wash & Iron',
-                'status' => 'Scheduled',
-                'total_price' => 1500.00,
-                'dropoff_date' => 'Sept 12, 2024',
-                'pickup_date' => 'Sept 14, 2024',
-                'payment_status' => 'Unpaid',
-                'created_at' => 'Sept 12, 2024 9:15 AM'
-            ],
-            [
-                'id' => 4,
-                'customer_name' => 'Roberto Santos',
-                'customer_email' => 'roberto.santos@gmail.com',
-                'service_type' => 'Wash & Fold',
-                'status' => 'Completed',
-                'total_price' => 600.00,
-                'dropoff_date' => 'Sept 7, 2024',
-                'pickup_date' => 'Sept 9, 2024',
-                'payment_status' => 'Paid',
-                'created_at' => 'Sept 7, 2024 11:45 AM'
-            ],
-            [
-                'id' => 5,
-                'customer_name' => 'Carmen Reyes',
-                'customer_email' => 'carmen.reyes@yahoo.com',
-                'service_type' => 'Dry Clean',
-                'status' => 'In Progress',
-                'total_price' => 1200.00,
-                'dropoff_date' => 'Sept 10, 2024',
-                'pickup_date' => 'Sept 12, 2024',
-                'payment_status' => 'Paid',
-                'created_at' => 'Sept 10, 2024 3:30 PM'
-            ]
-        ]);
+        // Get real orders data from database with relationships
+        $orders = Order::with(['customer', 'staff', 'createdBy'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'customer_name' => $order->customer->name ?? 'N/A',
+                    'customer_email' => $order->customer->email ?? 'N/A',
+                    'service_type' => 'Wash & Fold', // This would come from order_items or services table
+                    'status' => ucfirst(str_replace('_', ' ', $order->status)),
+                    'total_price' => number_format($order->total_price ?? 0, 2),
+                    'dropoff_date' => $order->dropoff_date ? Carbon::parse($order->dropoff_date)->format('M j, Y') : 'N/A',
+                    'pickup_date' => $order->pickup_date ? Carbon::parse($order->pickup_date)->format('M j, Y') : 'N/A',
+                    'payment_status' => ucfirst($order->payment_status),
+                    'created_at' => $order->created_at->format('M j, Y g:i A'),
+                    'staff_name' => $order->staff->name ?? 'Unassigned',
+                    'notes' => $order->notes ?? ''
+                ];
+            });
 
         // Define columns for the data table
         $columns = [
@@ -107,7 +69,17 @@ class OrderController extends Controller
      */
     public function create()
     {
-        return view('superadmin.orders.create');
+        $customers = User::whereHas('role', function($query) {
+            $query->where('name', 'customer');
+        })->get();
+        
+        $staff = User::whereHas('role', function($query) {
+            $query->where('name', 'staff');
+        })->get();
+        
+        $services = Service::where('is_active', true)->get();
+        
+        return view('superadmin.orders.create', compact('customers', 'staff', 'services'));
     }
 
     /**
@@ -115,7 +87,27 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        // Validation and storage logic will go here
+        $request->validate([
+            'customer_id' => 'required|exists:users,id',
+            'staff_id' => 'nullable|exists:users,id',
+            'dropoff_date' => 'required|date|after_or_equal:today',
+            'pickup_date' => 'required|date|after:dropoff_date',
+            'total_price' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:1000'
+        ]);
+
+        $order = Order::create([
+            'customer_id' => $request->customer_id,
+            'staff_id' => $request->staff_id,
+            'dropoff_date' => $request->dropoff_date,
+            'pickup_date' => $request->pickup_date,
+            'total_price' => $request->total_price,
+            'status' => 'scheduled',
+            'payment_status' => 'unpaid',
+            'notes' => $request->notes,
+            'created_by' => Auth::id()
+        ]);
+
         return redirect()->route('superadmin.orders.index')->with('success', 'Order created successfully');
     }
 
@@ -124,7 +116,9 @@ class OrderController extends Controller
      */
     public function show(string $id)
     {
-        return view('superadmin.orders.show', compact('id'));
+        $order = Order::with(['customer', 'staff', 'createdBy', 'payments'])->findOrFail($id);
+        
+        return view('superadmin.orders.show', compact('order'));
     }
 
     /**
@@ -132,7 +126,17 @@ class OrderController extends Controller
      */
     public function edit(string $id)
     {
-        return view('superadmin.orders.edit', compact('id'));
+        $order = Order::with(['customer', 'staff'])->findOrFail($id);
+        
+        $customers = User::whereHas('role', function($query) {
+            $query->where('name', 'customer');
+        })->get();
+        
+        $staff = User::whereHas('role', function($query) {
+            $query->where('name', 'staff');
+        })->get();
+        
+        return view('superadmin.orders.edit', compact('order', 'customers', 'staff'));
     }
 
     /**
@@ -140,7 +144,32 @@ class OrderController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Update logic will go here
+        $request->validate([
+            'customer_id' => 'required|exists:users,id',
+            'staff_id' => 'nullable|exists:users,id',
+            'dropoff_date' => 'required|date',
+            'pickup_date' => 'required|date|after:dropoff_date',
+            'total_price' => 'nullable|numeric|min:0',
+            'status' => 'required|in:scheduled,priced,in_progress,completed,canceled',
+            'payment_status' => 'required|in:unpaid,paid',
+            'payment_method' => 'nullable|in:cash,gcash,credit_card,paypal',
+            'notes' => 'nullable|string|max:1000'
+        ]);
+
+        $order = Order::findOrFail($id);
+        
+        $order->update([
+            'customer_id' => $request->customer_id,
+            'staff_id' => $request->staff_id,
+            'dropoff_date' => $request->dropoff_date,
+            'pickup_date' => $request->pickup_date,
+            'total_price' => $request->total_price,
+            'status' => $request->status,
+            'payment_status' => $request->payment_status,
+            'payment_method' => $request->payment_method,
+            'notes' => $request->notes
+        ]);
+
         return redirect()->route('superadmin.orders.index')->with('success', 'Order updated successfully');
     }
 
@@ -149,7 +178,9 @@ class OrderController extends Controller
      */
     public function destroy(string $id)
     {
-        // Delete logic will go here
+        $order = Order::findOrFail($id);
+        $order->delete();
+
         return redirect()->route('superadmin.orders.index')->with('success', 'Order deleted successfully');
     }
 
@@ -160,81 +191,28 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         
-        // Sample orders data filtered for the current customer
-        // In a real application, you would query: Order::where('customer_id', $currentUser->id)->get()
-        $allOrders = collect([
-            [
-                'id' => 1,
-                'customer_id' => 1, // This would be the current user's ID
-                'customer_name' => 'Maria Santos',
-                'customer_email' => 'maria.santos@gmail.com',
-                'service_type' => 'Wash & Fold',
-                'status' => 'In Progress',
-                'total_price' => 750.00,
-                'dropoff_date' => 'Sept 9, 2024',
-                'pickup_date' => 'Sept 11, 2024',
-                'payment_status' => 'Paid',
-                'created_at' => 'Sept 9, 2024 10:30 AM'
-            ],
-            [
-                'id' => 2,
-                'customer_id' => 2, // Different customer
-                'customer_name' => 'Jose Garcia',
-                'customer_email' => 'jose.garcia@yahoo.com',
-                'service_type' => 'Dry Clean',
-                'status' => 'Completed',
-                'total_price' => 1000.00,
-                'dropoff_date' => 'Sept 8, 2024',
-                'pickup_date' => 'Sept 10, 2024',
-                'payment_status' => 'Paid',
-                'created_at' => 'Sept 8, 2024 2:20 PM'
-            ],
-            [
-                'id' => 3,
-                'customer_id' => 1, // This would be the current user's ID
-                'customer_name' => 'Maria Santos',
-                'customer_email' => 'maria.santos@gmail.com',
-                'service_type' => 'Wash & Iron',
-                'status' => 'Scheduled',
-                'total_price' => 1500.00,
-                'dropoff_date' => 'Sept 12, 2024',
-                'pickup_date' => 'Sept 14, 2024',
-                'payment_status' => 'Unpaid',
-                'created_at' => 'Sept 12, 2024 9:15 AM'
-            ],
-            [
-                'id' => 4,
-                'customer_id' => 3, // Different customer
-                'customer_name' => 'Roberto Santos',
-                'customer_email' => 'roberto.santos@gmail.com',
-                'service_type' => 'Wash & Fold',
-                'status' => 'Completed',
-                'total_price' => 600.00,
-                'dropoff_date' => 'Sept 7, 2024',
-                'pickup_date' => 'Sept 9, 2024',
-                'payment_status' => 'Paid',
-                'created_at' => 'Sept 7, 2024 11:45 AM'
-            ],
-            [
-                'id' => 5,
-                'customer_id' => 1, // This would be the current user's ID
-                'customer_name' => 'Maria Santos',
-                'customer_email' => 'maria.santos@gmail.com',
-                'service_type' => 'Dry Clean',
-                'status' => 'Completed',
-                'total_price' => 1200.00,
-                'dropoff_date' => 'Sept 10, 2024',
-                'pickup_date' => 'Sept 12, 2024',
-                'payment_status' => 'Paid',
-                'created_at' => 'Sept 10, 2024 3:30 PM'
-            ]
-        ]);
-
-        // Filter orders for the current customer only
-        // In a real application, this would be: Order::where('customer_id', $currentUser->id)->get()
-        $orders = $allOrders->filter(function ($order) use ($currentUser) {
-            return $order['customer_id'] == $currentUser->id;
-        })->values();
+        // Get real orders data for the current customer
+        $orders = Order::where('customer_id', $currentUser->id)
+            ->with(['staff', 'payments'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'customer_id' => $order->customer_id,
+                    'customer_name' => $currentUser->name,
+                    'customer_email' => $currentUser->email,
+                    'service_type' => 'Wash & Fold', // This would come from order_items or services table
+                    'status' => ucfirst(str_replace('_', ' ', $order->status)),
+                    'total_price' => number_format($order->total_price ?? 0, 2),
+                    'dropoff_date' => $order->dropoff_date ? Carbon::parse($order->dropoff_date)->format('M j, Y') : 'N/A',
+                    'pickup_date' => $order->pickup_date ? Carbon::parse($order->pickup_date)->format('M j, Y') : 'N/A',
+                    'payment_status' => ucfirst($order->payment_status),
+                    'created_at' => $order->created_at->format('M j, Y g:i A'),
+                    'staff_name' => $order->staff->name ?? 'Unassigned',
+                    'notes' => $order->notes ?? ''
+                ];
+            });
 
         return view('customer.orders.index', compact('orders'));
     }
@@ -246,26 +224,39 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         
-        // Sample order data - in real app, verify ownership: Order::where('id', $id)->where('customer_id', $currentUser->id)->firstOrFail()
-        $order = [
-            'id' => $id,
-            'customer_id' => $currentUser->id,
-            'service_type' => 'Wash & Fold',
-            'status' => 'Completed',
-            'total_price' => 750.00,
-            'dropoff_date' => 'Sept 9, 2024',
-            'pickup_date' => 'Sept 11, 2024',
-            'payment_status' => 'Paid',
-            'created_at' => 'Sept 9, 2024 10:30 AM',
-            'items_count' => 5,
-            'notes' => 'Please handle with care - delicate items included'
+        // Get real order data and verify ownership
+        $order = Order::where('id', $id)
+            ->where('customer_id', $currentUser->id)
+            ->with(['staff', 'payments', 'customer'])
+            ->firstOrFail();
+
+        // Format the order data for the view
+        $orderData = [
+            'id' => $order->id,
+            'customer_id' => $order->customer_id,
+            'customer_name' => $order->customer->name,
+            'customer_email' => $order->customer->email,
+            'service_type' => 'Wash & Fold', // This would come from order_items or services table
+            'status' => ucfirst(str_replace('_', ' ', $order->status)),
+            'total_price' => number_format($order->total_price ?? 0, 2),
+            'dropoff_date' => $order->dropoff_date ? Carbon::parse($order->dropoff_date)->format('M j, Y') : 'N/A',
+            'pickup_date' => $order->pickup_date ? Carbon::parse($order->pickup_date)->format('M j, Y') : 'N/A',
+            'payment_status' => ucfirst($order->payment_status),
+            'payment_method' => ucfirst(str_replace('_', ' ', $order->payment_method ?? 'Not specified')),
+            'created_at' => $order->created_at->format('M j, Y g:i A'),
+            'staff_name' => $order->staff->name ?? 'Unassigned',
+            'notes' => $order->notes ?? 'No special instructions',
+            'payments' => $order->payments->map(function ($payment) {
+                return [
+                    'amount' => number_format($payment->amount, 2),
+                    'method' => ucfirst(str_replace('_', ' ', $payment->payment_method)),
+                    'status' => ucfirst($payment->payment_status),
+                    'paid_at' => $payment->paid_at ? Carbon::parse($payment->paid_at)->format('M j, Y g:i A') : 'Not paid',
+                    'reference_number' => $payment->reference_number ?? 'N/A'
+                ];
+            })
         ];
 
-        // Verify the order belongs to the current customer
-        if ($order['customer_id'] != $currentUser->id) {
-            abort(403, 'Unauthorized access to this order.');
-        }
-
-        return view('customer.orders.show', compact('order'));
+        return view('customer.orders.show', compact('orderData'));
     }
 }

@@ -24,6 +24,8 @@
             :add-button="true"
             :add-button-label="'Create Announcement'"
             :add-button-action="'createAnnouncement'"
+            formType="announcement"
+            colorScheme="purple"
         />
     </div>
 

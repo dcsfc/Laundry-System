@@ -14,12 +14,15 @@ class UserController extends Controller
 {
     public function index()
     {
+        // Increase execution time limit
+        set_time_limit(120);
+        
         // Load roles for the form and filter dropdowns with caching
         $roles = cache()->remember('roles_list', 300, function() {
             return Role::orderBy('name')->get();
         });
         
-        // Load users for the reusable data table component
+        // Load only a limited number of users for initial display (pagination will handle the rest)
         $users = User::with(['role', 'createdBy'])
             ->select([
                 'users.id',
@@ -31,8 +34,19 @@ class UserController extends Controller
                 'users.role_id',
                 'users.created_by'
             ])
+            ->limit(50) // Limit initial load to prevent timeout
+            ->orderBy('users.id', 'desc')
             ->get()
             ->map(function ($user) {
+                // Get creator's name
+                $creatorName = 'System';
+                if ($user->created_by && $user->createdBy) {
+                    $creatorName = $user->createdBy->name;
+                } elseif ($user->created_by) {
+                    $creator = User::find($user->created_by);
+                    $creatorName = $creator ? $creator->name : 'Unknown User';
+                }
+                
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -42,7 +56,7 @@ class UserController extends Controller
                     'status' => ucfirst($user->status ?? 'Active'),
                     'created_at' => $user->created_at ? $user->created_at->format('M d, Y') : 'N/A',
                     'created_by' => $user->created_by,
-                    'created_by_name' => $user->createdBy ? $user->createdBy->name : 'System',
+                    'created_by_name' => $creatorName,
                     'account_age' => $user->created_at ? floor($user->created_at->diffInDays(now())) . ' days' : 'N/A'
                 ];
             });
@@ -119,7 +133,7 @@ class UserController extends Controller
                 'order' => $request->get('order')
             ]);
 
-            // Build query with proper joins for role filtering
+            // Build query with proper joins for role filtering and creator info
             $query = User::select([
                 'users.id',
                 'users.name',
@@ -129,9 +143,11 @@ class UserController extends Controller
                 'users.created_at',
                 'users.role_id',
                 'users.created_by',
-                'roles.name as role_name'
+                'roles.name as role_name',
+                'creator.name as created_by_name'
             ])
-            ->leftJoin('roles', 'users.role_id', '=', 'roles.id');
+            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')
+            ->leftJoin('users as creator', 'users.created_by', '=', 'creator.id');
 
             // Apply status filter
             if ($statusFilter && $statusFilter !== '') {
@@ -181,14 +197,36 @@ class UserController extends Controller
 
             return DataTables::of($query)
                 ->addColumn('created_by', function ($user) {
-                    // Simplified - just return System for now to avoid N+1 queries
+                    // Debug logging
+                    \Log::info('User created_by debug:', [
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                        'created_by' => $user->created_by,
+                        'created_by_name' => $user->created_by_name ?? 'null'
+                    ]);
+                    
+                    // Use the joined creator name if available
+                    if ($user->created_by_name) {
+                        return $user->created_by_name;
+                    }
+                    
+                    // If no joined name, try to get it directly
+                    if ($user->created_by) {
+                        $creator = User::find($user->created_by);
+                        if ($creator) {
+                            return $creator->name;
+                        }
+                    }
+                    
+                    // Fallback to System if no creator
                     return 'System';
                 })
                 ->addColumn('account_age', function ($user) {
-                    if (!$user->created_at) return 0;
+                    if (!$user->created_at) return '0 days';
                     $createdAt = \Carbon\Carbon::parse($user->created_at);
                     $now = \Carbon\Carbon::now();
-                    return floor($createdAt->diffInDays($now));
+                    $days = floor($createdAt->diffInDays($now));
+                    return $days . ' day' . ($days !== 1 ? 's' : '');
                 })
                 ->make(true);
                 
@@ -414,10 +452,31 @@ class UserController extends Controller
             
             $user = User::create($userData);
             
+            // Get creator's name - use current authenticated user's name
+            $currentUser = auth()->user();
+            $creatorName = $currentUser ? $currentUser->name : 'System';
+            
+            // Debug logging
+            \Log::info('Creator info:', [
+                'user_created_by' => $user->created_by,
+                'current_user_id' => $currentUser ? $currentUser->id : null,
+                'current_user_name' => $currentUser ? $currentUser->name : null,
+                'creator_name' => $creatorName
+            ]);
+            
             return response()->json([
                 'success' => true,
                 'message' => 'User created successfully',
-                'user' => $user
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone_number' => $user->phone_number,
+                    'status' => $user->status,
+                    'created_at' => $user->created_at->format('M d, Y'),
+                    'created_by' => $user->created_by,
+                    'created_by_name' => $creatorName
+                ]
             ]);
             
         } catch (\Illuminate\Validation\ValidationException $e) {
