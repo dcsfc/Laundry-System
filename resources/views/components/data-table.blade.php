@@ -19,738 +19,9 @@
 
 @vite('resources/js/app.js')
 
-<script>
-function dataTable(initialData, actions, pageSize, colorScheme) {
-    return {
-        data: initialData,
-        actions: actions,
-        searchTerm: '',
-        statusFilter: 'all',
-        roleFilter: 'all',
-        sortKey: '',
-        sortDirection: 'asc',
-        displayedData: [],
-        currentPage: 1,
-        pageSize: pageSize,
-        openMenuId: null,
-        isMobile: false,
-        menuPosition: { top: 0, left: 0, transform: '' },
-        showAddModal: false,
-        modalStep: 1,
-        modalSteps: [
-            { step: 1, title: '', subtitle: '' }
-        ],
-        formData: {
-            name: '',
-            email: '',
-            phone: '',
-            role: '',
-            password: '',
-            status: 'active'
-        },
-        formErrors: {},
-        isSubmitting: false,
-        showPassword: false,
-        colorScheme: colorScheme,
-
-        init() {
-            console.log('DataTable init - Initial data:', this.data);
-            console.log('DataTable init - Data length:', this.data ? this.data.length : 0);
-            
-            // Initialize displayedData with the actual data
-            this.displayedData = [...(this.data || [])];
-            
-            console.log('DataTable init - Displayed data:', this.displayedData);
-            console.log('DataTable init - Displayed data length:', this.displayedData.length);
-            
-            this.checkMobileSize();
-            window.addEventListener('resize', () => this.checkMobileSize());
-            this.$nextTick(() => {
-                this.applyFilters();
-            });
-        },
-
-        checkMobileSize() {
-            this.isMobile = window.innerWidth < 768;
-        },
-
-        applyFilters() {
-            console.log('applyFilters called - this.data:', this.data);
-            console.log('applyFilters called - this.data length:', this.data ? this.data.length : 0);
-            
-            // Ensure we have data to work with
-            if (!Array.isArray(this.data) || this.data.length === 0) {
-                console.log('No data available, setting displayedData to empty array');
-                this.displayedData = [];
-                this.currentPage = 1;
-                return;
-            }
-            
-            const searchLower = this.searchTerm ? this.searchTerm.toLowerCase() : '';
-            const statusLower = this.statusFilter === 'all' ? null : this.statusFilter.toLowerCase();
-            const roleLower = this.roleFilter === 'all' ? null : this.roleFilter.toLowerCase();
-            
-            let filtered = this.data.filter(row => {
-                const matchesSearch = !searchLower || 
-                    Object.values(row).some(value => 
-                        String(value).toLowerCase().includes(searchLower)
-                    );
-                const matchesStatus = !statusLower || row.status?.toLowerCase() === statusLower;
-                const matchesRole = !roleLower || 
-                    row.role?.toLowerCase() === roleLower ||
-                    row.role_name?.toLowerCase() === roleLower;
-                
-                return matchesSearch && matchesStatus && matchesRole;
-            });
-
-            if (this.sortKey) {
-                filtered.sort((a, b) => {
-                    let aVal = a[this.sortKey] ?? '';
-                    let bVal = b[this.sortKey] ?? '';
-
-                    if (!isNaN(aVal) && !isNaN(bVal)) {
-                        return this.sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
-                    }
-
-                    aVal = aVal.toString().toLowerCase();
-                    bVal = bVal.toString().toLowerCase();
-
-                    if (aVal < bVal) return this.sortDirection === 'asc' ? -1 : 1;
-                    if (aVal > bVal) return this.sortDirection === 'asc' ? 1 : -1;
-                    return 0;
-                });
-            }
-
-            this.displayedData = filtered;
-            this.currentPage = 1;
-            
-            console.log('applyFilters completed - displayedData length:', this.displayedData.length);
-        },
-
-        sort(columnKey) {
-            if (!columnKey) return;
-            if (this.sortKey === columnKey) {
-                this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                this.sortKey = columnKey;
-                this.sortDirection = 'asc';
-            }
-            this.applyFilters();
-        },
-
-        search() { this.applyFilters() },
-        filterStatus() { this.applyFilters() },
-        filterRole() { this.applyFilters() },
-
-        goToPage(page) {
-            if (page < 1) page = 1;
-            if (page > this.totalPages) page = this.totalPages;
-            this.currentPage = page;
-        },
-
-        changePageSize() {
-            this.currentPage = 1;
-            this.applyFilters();
-        },
-
-        get paginatedData() {
-            const start = (this.currentPage - 1) * this.pageSize;
-            const end = start + this.pageSize;
-            return this.displayedData.slice(start, end);
-        },
-
-        get totalPages() {
-            return Math.ceil(this.displayedData.length / this.pageSize);
-        },
-
-        get totalRecords() {
-            return this.displayedData.length;
-        },
-
-        formatValue(key, value) {
-            if (value === null || value === undefined) {
-                return '-';
-            }
-            
-            if (value === '') {
-                return '-';
-            }
-            
-            const stringValue = String(value);
-            if (stringValue.includes('function') || 
-                stringValue.includes('=>') || 
-                stringValue.includes('const ') || 
-                stringValue.includes('let ') || 
-                stringValue.includes('var ') ||
-                stringValue.includes('await ') ||
-                stringValue.includes('async ') ||
-                stringValue.includes('setTimeout') ||
-                stringValue.includes('document.') ||
-                stringValue.includes('x-data=') ||
-                stringValue.includes('x-init=') ||
-                stringValue.includes('x-show=') ||
-                stringValue.includes('x-text=') ||
-                stringValue.includes('@click') ||
-                stringValue.includes('@keydown') ||
-                stringValue.includes('class=') ||
-                stringValue.includes('id=') ||
-                stringValue.includes('<div') ||
-                stringValue.includes('<span') ||
-                stringValue.includes('<button') ||
-                stringValue.includes('<svg') ||
-                stringValue.includes('</div>') ||
-                stringValue.includes('</span>') ||
-                stringValue.includes('</button>') ||
-                stringValue.includes('</svg>') ||
-                (stringValue.length > 200 && stringValue.includes(';'))) {
-                return '[Code/HTML Content]';
-            }
-            
-            if (key.toLowerCase() === 'price' || key.toLowerCase() === 'amount' || key.toLowerCase() === 'total_price') {
-                const numValue = Number(value);
-                if (isNaN(numValue)) return value;
-                return `â‚±${numValue.toLocaleString()}`;
-            }
-            
-            if (key.toLowerCase().includes('date') || key.toLowerCase().includes('_at')) {
-                try {
-                    const date = new Date(value);
-                    if (isNaN(date.getTime())) return value;
-                    return date.toLocaleDateString('en-US', { 
-                        year: 'numeric', month: 'long', day: 'numeric' 
-                    });
-                } catch (e) {
-                    return value;
-                }
-            }
-            
-            if (typeof value === 'boolean') {
-                return value ? 'Yes' : 'No';
-            }
-            
-            if (typeof value === 'number') {
-                return value.toLocaleString();
-            }
-            
-            if (stringValue.length > 100) {
-                return stringValue.substring(0, 100) + '...';
-            }
-            
-            return stringValue;
-        },
-
-        getStatusConfig(status) {
-            const statusLower = status.toLowerCase();
-            
-            const statusConfigs = {
-                'active': { class: 'emerald', dot: 'bg-emerald-400' },
-                'completed': { class: 'emerald', dot: 'bg-emerald-400' },
-                'confirmed': { class: 'emerald', dot: 'bg-emerald-400' },
-                'paid': { class: 'emerald', dot: 'bg-emerald-400' },
-                'in stock': { class: 'emerald', dot: 'bg-emerald-400' },
-                
-                'pending': { class: 'yellow', dot: 'bg-yellow-400' },
-                'waiting': { class: 'yellow', dot: 'bg-yellow-400' },
-                'scheduled': { class: 'yellow', dot: 'bg-yellow-400' },
-                'priced': { class: 'yellow', dot: 'bg-yellow-400' },
-                'low stock': { class: 'yellow', dot: 'bg-yellow-400' },
-                
-                'in progress': { class: 'blue', dot: 'bg-blue-400' },
-                'processing': { class: 'blue', dot: 'bg-blue-400' },
-                'working': { class: 'blue', dot: 'bg-blue-400' },
-                
-                'cancelled': { class: 'rose', dot: 'bg-rose-400' },
-                'inactive': { class: 'rose', dot: 'bg-rose-400' },
-                'failed': { class: 'rose', dot: 'bg-rose-400' },
-                'rejected': { class: 'rose', dot: 'bg-rose-400' },
-                'out of stock': { class: 'rose', dot: 'bg-rose-400' }
-            };
-            
-            return statusConfigs[statusLower] || { class: 'gray', dot: 'bg-gray-400' };
-        },
-
-        statusClass(status) {
-            const config = this.getStatusConfig(status);
-            return `flex items-center gap-1 bg-${config.class}-500/20 text-${config.class}-400 border border-${config.class}-500/30 px-3 py-0.5 rounded-full text-xs font-medium`;
-        },
-
-        getStatusDotColor(status) {
-            const config = this.getStatusConfig(status);
-            return config.dot;
-        },
-
-        handleAction(row, action) {
-            if (action === 'add') {
-                this.openAddModal();
-            } else {
-                const actionConfig = this.actions.find(a => a.label.toLowerCase() === action.toLowerCase());
-                if (actionConfig && window[actionConfig.onclick]) {
-                    window[actionConfig.onclick](row);
-                }
-            }
-        },
-
-        positionMenu(rowId) {
-            const button = document.getElementById('action-btn-' + rowId);
-            if (!button) return;
-
-            const buttonRect = button.getBoundingClientRect();
-            const menuWidth = 176;
-            const menuHeight = 200;
-            const padding = 8;
-
-            const spaceBelow = window.innerHeight - buttonRect.bottom;
-            const spaceAbove = buttonRect.top;
-            const spaceRight = window.innerWidth - buttonRect.right;
-            const spaceLeft = buttonRect.left;
-
-            let top, left;
-
-            if (spaceBelow >= menuHeight + padding || spaceBelow >= spaceAbove) {
-                top = buttonRect.bottom + padding;
-            } else {
-                top = buttonRect.top - menuHeight - padding;
-            }
-
-            if (spaceRight >= menuWidth || spaceRight >= spaceLeft) {
-                left = buttonRect.left;
-            } else {
-                left = buttonRect.right - menuWidth;
-            }
-
-            top = Math.max(padding, Math.min(top, window.innerHeight - menuHeight - padding));
-            left = Math.max(padding, Math.min(left, window.innerWidth - menuWidth - padding));
-
-            this.menuPosition = {
-                top: top + 'px',
-                left: left + 'px',
-                transform: 'none'
-            };
-        },
-
-        toggleMenu(rowId) {
-            if (this.openMenuId !== null && this.openMenuId !== rowId) {
-                this.closeAllMenus();
-            }
-            
-            if (this.openMenuId === rowId) {
-                this.closeAllMenus();
-                return;
-            }
-
-            this.openMenuId = rowId;
-
-            if (this.isMobile) {
-                document.body.classList.add('mobile-menu-open');
-            } else {
-                this.$nextTick(() => {
-                    this.positionMenu(rowId);
-                });
-            }
-
-            this.$nextTick(() => {
-                if (!this.isMobile) {
-                    const menu = document.getElementById('action-menu-' + rowId);
-                    if (menu) {
-                        const firstButton = menu.querySelector('button');
-                        if (firstButton) {
-                            firstButton.focus();
-                        }
-                    }
-                }
-            });
-        },
-
-        closeAllMenus() {
-            this.openMenuId = null;
-            document.body.classList.remove('mobile-menu-open');
-        },
-
-        openAddModal() {
-            this.showAddModal = true;
-            this.modalStep = 1;
-            this.formData = {
-                name: '',
-                email: '',
-                phone: '',
-                role: '',
-                password: '',
-                status: 'active'
-            };
-            this.formErrors = {};
-            this.isSubmitting = false;
-            this.showPassword = false;
-            document.body.classList.add('modal-open');
-            
-            this.$nextTick(() => {
-                const firstInput = document.querySelector('#modal-form input[type="text"]');
-                if (firstInput) firstInput.focus();
-            });
-        },
-
-        closeAddModal() {
-            this.showAddModal = false;
-            this.modalStep = 1;
-            this.formData = {
-                name: '',
-                email: '',
-                phone: '',
-                role: '',
-                password: '',
-                status: 'active'
-            };
-            this.formErrors = {};
-            this.isSubmitting = false;
-            this.showPassword = false;
-            document.body.classList.remove('modal-open');
-        },
-
-        nextStep() {
-            // Since we only have one step now, this function is not needed
-            // But keeping it for compatibility
-        },
-
-        prevStep() {
-            // Since we only have one step now, this function is not needed
-            // But keeping it for compatibility
-        },
-
-        validateCurrentStep() {
-            this.formErrors = {};
-            let isValid = true;
-
-            if (this.modalStep === 1) {
-                if (!this.formData.name || this.formData.name.trim() === '') {
-                    this.formErrors.name = 'Name is required';
-                    isValid = false;
-                }
-
-                if (this.formData.email && !this.isValidEmail(this.formData.email)) {
-                    this.formErrors.email = 'Please enter a valid email address';
-                    isValid = false;
-                }
-
-                if (this.formData.phone && !this.isValidPhone(this.formData.phone)) {
-                    this.formErrors.phone = 'Please enter a valid phone number';
-                    isValid = false;
-                }
-            }
-
-            return isValid;
-        },
-
-        validateForm() {
-            this.formErrors = {};
-            let isValid = true;
-
-            if (!this.formData.name || this.formData.name.trim() === '') {
-                this.formErrors.name = 'Name is required';
-                isValid = false;
-            }
-
-            if (!this.formData.role || this.formData.role.trim() === '') {
-                this.formErrors.role = 'User role is required';
-                isValid = false;
-            }
-
-            if (!this.formData.password || this.formData.password.trim() === '') {
-                this.formErrors.password = 'Password is required';
-                isValid = false;
-            } else if (this.formData.password.length < 6) {
-                this.formErrors.password = 'Password must be at least 6 characters';
-                isValid = false;
-            }
-
-            if (this.formData.email && !this.isValidEmail(this.formData.email)) {
-                this.formErrors.email = 'Please enter a valid email address';
-                isValid = false;
-            }
-
-            if (this.formData.phone && !this.isValidPhone(this.formData.phone)) {
-                this.formErrors.phone = 'Please enter a valid phone number';
-                isValid = false;
-            }
-
-            return isValid;
-        },
-
-        isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        },
-
-        isValidPhone(phone) {
-            const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-            return phoneRegex.test(phone.replace(/\s/g, ''));
-        },
-
-        async submitForm() {
-            if (!this.validateForm()) {
-                return;
-            }
-
-            this.isSubmitting = true;
-
-            try {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                const newItem = {
-                    id: Date.now(),
-                    ...this.formData,
-                    created_at: new Date().toISOString(),
-                    status: this.formData.status
-                };
-
-                this.data.unshift(newItem);
-                this.applyFilters();
-
-                this.showNotification('Item added successfully! ðŸŽ‰', 'success');
-                this.closeAddModal();
-
-            } catch (error) {
-                console.error('Error adding item:', error);
-                this.showNotification('Error adding item. Please try again.', 'error');
-            } finally {
-                this.isSubmitting = false;
-            }
-        },
-
-        showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-[99999] px-6 py-4 rounded-xl shadow-2xl transition-all duration-300 transform translate-x-full ${
-                type === 'success' 
-                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white border border-emerald-400/20' 
-                    : 'bg-gradient-to-r from-red-500 to-rose-600 text-white border border-red-400/20'
-            }`;
-            notification.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 rounded-full ${type === 'success' ? 'bg-white/20' : 'bg-white/20'} flex items-center justify-center">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                ${type === 'success' 
-                                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>'
-                                    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>'
-                                }
-                            </svg>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-sm">${type === 'success' ? 'Success!' : 'Error!'}</p>
-                        <p class="text-xs opacity-90">${message}</p>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 100);
-
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (document.body.contains(notification)) {
-                        document.body.removeChild(notification);
-                    }
-                }, 300);
-            }, 4000);
-        },
-
-        getActionIcon(actionLabel) {
-            const iconClass = 'h-4 w-4 text-slate-400';
-            const actionLower = actionLabel.toLowerCase();
-            
-            const icons = {
-                view: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`,
-                edit: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
-                delete: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`,
-                add: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>`,
-                print: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>`,
-                download: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
-                copy: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>`,
-                status: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>`,
-                approve: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`,
-                reject: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
-                default: `<svg xmlns="http://www.w3.org/2000/svg" class="${iconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`
-            };
-
-            for (const [key, icon] of Object.entries(icons)) {
-                if (actionLower.includes(key)) {
-                    return icon;
-                }
-            }
-
-            return icons.default;
-        }
-    }
-}
-</script>
-
-<style>
-    /* Premium SaaS modal animations */
-    @keyframes slideInFromTop {
-        from {
-            transform: translateY(-100px) scale(0.9);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-    }
-
-    @keyframes fadeInBackdrop {
-        from {
-            opacity: 0;
-            backdrop-filter: blur(0px);
-        }
-        to {
-            opacity: 1;
-            backdrop-filter: blur(8px);
-        }
-    }
-
-    .modal-content-premium {
-        animation: slideInFromTop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .modal-backdrop-premium {
-        animation: fadeInBackdrop 0.3s ease-out;
-    }
-
-    /* Progress bar */
-    .progress-bar {
-        @apply relative bg-slate-700 rounded-full h-1 overflow-hidden;
-    }
-
-    .progress-fill {
-        @apply h-full bg-gradient-to-r transition-all duration-500 ease-out;
-    }
-
-    /* Scrollbar styling */
-    .custom-scrollbar::-webkit-scrollbar {
-        height: 8px;
-        width: 8px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: #1e293b;
-        border-radius: 4px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #475569;
-        border-radius: 4px;
-        border: 1px solid #334155;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-corner {
-        background: #1e293b;
-    }
-
-    /* Mobile menu body scroll prevention */
-    .mobile-menu-open {
-        overflow: hidden;
-    }
-
-    /* Modal body scroll prevention */
-    .modal-open {
-        overflow: hidden;
-    }
-
-    /* High z-index modal classes - FIXED */
-    .modal-overlay-highest {
-        z-index: 99997 !important;
-    }
-
-    .modal-backdrop-highest {
-        z-index: 99998 !important;
-    }
-
-    .modal-content-highest {
-        z-index: 99999 !important;
-    }
-
-    /* Ensure modal is always on top */
-    .data-table-modal {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        z-index: 99997 !important;
-    }
-
-    /* Premium button hover effects */
-    .btn-premium {
-        @apply relative overflow-hidden;
-    }
-
-    .btn-premium::before {
-        content: '';
-        @apply absolute top-0 left-0 w-full h-full bg-white/10 transform scale-x-0 transition-transform duration-300 origin-left;
-    }
-
-    .btn-premium:hover::before {
-        @apply scale-x-100;
-    }
-
-    /* Premium step indicator */
-    .step-indicator {
-        @apply relative w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold transition-all duration-300;
-    }
-
-    .step-indicator.active {
-        @apply border-sky-400 bg-sky-400 text-white shadow-lg shadow-sky-400/25;
-    }
-
-    .step-indicator.completed {
-        @apply border-emerald-400 bg-emerald-400 text-white;
-    }
-
-    .step-indicator.inactive {
-        @apply border-slate-600 bg-slate-800 text-slate-400;
-    }
-
-    /* Premium form field focus states */
-    .form-input-premium {
-        @apply relative;
-    }
-
-    .form-input-premium input:focus,
-    .form-input-premium textarea:focus,
-    .form-input-premium select:focus {
-        @apply ring-2 ring-sky-400/50 border-sky-400 shadow-lg shadow-sky-400/10;
-    }
-
-    /* Pulse animation for loading states */
-    @keyframes pulse {
-        0%, 100% {
-            opacity: 1;
-        }
-        50% {
-            opacity: .5;
-        }
-    }
-
-    .animate-pulse {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    /* Enhanced focus states */
-    .focus-ring {
-        @apply focus:outline-none focus:ring-2 focus:ring-sky-400/50 focus:border-sky-400;
-    }
-</style>
-
 <!-- Reusable Data Table Component -->
 <div 
-    x-data="dataTable(@js($data), @js($actions), {{ $pageSize }}, '{{ $colorScheme }}')"
+    x-data="dataTable(@js($data), @js($actions), @js($columns), {{ $pageSize }}, '{{ $colorScheme }}')"
     x-init="init()"
     @keydown.escape.window="closeAllMenus(); if (showAddModal) closeAddModal();"
     class="data-table-container w-full bg-slate-900 text-slate-50 p-6 rounded-xl shadow-xl border border-slate-800 {{ $customClass }}"
@@ -1066,7 +337,7 @@ function dataTable(initialData, actions, pageSize, colorScheme) {
     </div>
     @endif
 
-    <!-- Premium SaaS Modal - PROFESSIONAL UPGRADE -->
+    <!-- Add/Edit Modal -->
     <div 
         x-show="showAddModal"
         x-transition:enter="transition ease-out duration-300"
@@ -1075,338 +346,123 @@ function dataTable(initialData, actions, pageSize, colorScheme) {
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed inset-0 overflow-y-auto z-[99997] data-table-modal"
+        class="fixed inset-0 z-50 overflow-y-auto"
         style="display: none;"
     >
-        <!-- Premium Backdrop with Enhanced Blur -->
-        <div 
-            @click="closeAddModal()"
-            class="fixed inset-0 bg-black/70 backdrop-blur-xl z-[99998] modal-backdrop-premium modal-backdrop-highest"
-        ></div>
-
-        <!-- Premium Modal Container -->
-        <div class="relative flex min-h-full items-center justify-center p-4 z-[99999] modal-content-highest">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeAddModal()"></div>
+        
+        <!-- Modal Container -->
+        <div class="relative flex min-h-full items-center justify-center p-4">
             <div 
-                @click.stop
-                class="modal-content modal-content-premium relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl shadow-black/50"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform scale-95"
+                x-transition:enter-end="opacity-100 transform scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 transform scale-100"
+                x-transition:leave-end="opacity-0 transform scale-95"
+                class="relative w-full max-w-2xl transform overflow-hidden rounded-xl bg-white dark:bg-gray-900 shadow-2xl"
             >
-                <!-- Premium Header with Progress Indicator -->
-                <div class="relative bg-gradient-to-r from-slate-800/90 via-slate-700/90 to-slate-800/90 px-8 py-6 border-b border-slate-600/50 backdrop-blur-sm">
-                    <!-- Close Button -->
-                    <button 
-                        @click="closeAddModal()"
-                        class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded-xl transition-all duration-200 group"
-                    >
-                        <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-
-                    <!-- Header Content -->
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-12 h-12 bg-gradient-to-r from-{{ $colorScheme === 'indigo' ? 'indigo-500' : 'sky-500' }} to-{{ $colorScheme === 'indigo' ? 'purple-500' : 'cyan-500' }} rounded-2xl flex items-center justify-center shadow-lg shadow-{{ $colorScheme === 'indigo' ? 'indigo-500' : 'sky-500' }}/25">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            <span x-text="formData.id ? 'Edit Item' : 'Add New Item'"></span>
+                        </h3>
+                        <button 
+                            @click="closeAddModal()"
+                            class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-white mb-1">Create New Item</h2>
-                            <p class="text-slate-400 text-sm">Add a new item to your {{ strtolower($title) }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Modern Step Indicator -->
-                    <div class="relative">
-                        <!-- Progress Bar Background -->
-                        <div class="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-{{ $colorScheme === 'indigo' ? 'indigo-500' : 'sky-500' }} to-{{ $colorScheme === 'indigo' ? 'purple-500' : 'cyan-500' }} rounded-full transition-all duration-500 ease-out"
-                                 :style="`width: ${((modalStep - 1) / (modalSteps.length - 1)) * 100}%`">
-                            </div>
-                        </div>
-                        
-                        <!-- Step Dots -->
-                        <div class="flex justify-between mt-4">
-                            <template x-for="(stepData, index) in modalSteps" :key="index">
-                                <div class="flex flex-col items-center">
-                                    <!-- Step Circle -->
-                                    <div class="relative">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300"
-                                             :class="{
-                                                 'bg-gradient-to-r from-{{ $colorScheme === "indigo" ? "indigo-500" : "sky-500" }} to-{{ $colorScheme === "indigo" ? "purple-500" : "cyan-500" }} text-white shadow-lg shadow-{{ $colorScheme === "indigo" ? "indigo-500" : "sky-500" }}/25': stepData.step === modalStep,
-                                                 'bg-slate-600 text-slate-300': stepData.step < modalStep,
-                                                 'bg-slate-700 text-slate-500': stepData.step > modalStep
-                                             }">
-                                            <template x-if="stepData.step < modalStep">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                            </template>
-                                            <template x-if="stepData.step >= modalStep">
-                                                <span x-text="stepData.step"></span>
-                                            </template>
-                                        </div>
-                                        
-                                        <!-- Pulse Animation for Current Step -->
-                                        <div x-show="stepData.step === modalStep" 
-                                             class="absolute inset-0 w-10 h-10 rounded-full bg-gradient-to-r from-{{ $colorScheme === 'indigo' ? 'indigo-500' : 'sky-500' }} to-{{ $colorScheme === 'indigo' ? 'purple-500' : 'cyan-500' }} animate-ping opacity-20">
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Step Label -->
-                                    <div class="mt-2 text-center">
-                                        <div class="text-xs font-medium transition-colors duration-300"
-                                             :class="{
-                                                 'text-white': stepData.step === modalStep,
-                                                 'text-slate-300': stepData.step < modalStep,
-                                                 'text-slate-500': stepData.step > modalStep
-                                             }"
-                                             x-text="stepData.title">
-                                        </div>
-                                        <div class="text-xs text-slate-400 mt-1" 
-                                             x-show="stepData.step === modalStep"
-                                             x-text="stepData.subtitle">
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
+                        </button>
                     </div>
                 </div>
-
-                <!-- Premium Form Content -->
-                <form @submit.prevent="submitForm()" id="modal-form" class="relative">
-                    <div class="px-8 py-6">
-                        <!-- Step 1: Basic Information -->
-                        <div x-show="modalStep === 1" id="step-1" 
-                             x-transition:enter="transition ease-out duration-300"
-                             x-transition:enter-start="opacity-0 transform translate-x-8"
-                             x-transition:enter-end="opacity-100 transform translate-x-0"
-                             class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Name Field -->
-                                <div class="form-input-premium">
-                                    <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                        </svg>
-                                        Full Name <span class="text-red-400">*</span>
-                                    </label>
+                
+                <!-- Form Content -->
+                <form @submit.prevent="submitForm()">
+                    <div class="px-6 py-4">
+                        <div class="space-y-4">
+                            <!-- Dynamic form fields will be inserted here by parent components -->
+                            <div id="modal-form-content">
+                                <!-- Example field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
                                     <input 
                                         type="text" 
                                         x-model="formData.name"
-                                        class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-100 placeholder-slate-400 transition-all duration-200 hover:border-slate-500 focus:ring-2 focus:ring-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}/50 focus:border-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}"
-                                        placeholder="Enter full name"
-                                        required
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+                                        placeholder="Enter name"
                                     >
-                                    <div x-show="formErrors.name" class="mt-2 text-sm text-red-400 flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <span x-text="formErrors.name"></span>
-                                    </div>
-                                </div>
-
-                                <!-- Email Field -->
-                                <div class="form-input-premium">
-                                    <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                                        </svg>
-                                        Email Address
-                                    </label>
-                                    <input 
-                                        type="email" 
-                                        x-model="formData.email"
-                                        class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-100 placeholder-slate-400 transition-all duration-200 hover:border-slate-500 focus:ring-2 focus:ring-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}/50 focus:border-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}"
-                                        placeholder="Enter email address"
-                                    >
-                                    <div x-show="formErrors.email" class="mt-2 text-sm text-red-400 flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <span x-text="formErrors.email"></span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Phone Field -->
-                                <div class="form-input-premium">
-                                    <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                                        </svg>
-                                        Phone Number
-                                    </label>
-                                    <input 
-                                        type="tel" 
-                                        x-model="formData.phone"
-                                        class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-100 placeholder-slate-400 transition-all duration-200 hover:border-slate-500 focus:ring-2 focus:ring-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}/50 focus:border-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}"
-                                        placeholder="Enter phone number"
-                                    >
-                                    <div x-show="formErrors.phone" class="mt-2 text-sm text-red-400 flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <span x-text="formErrors.phone"></span>
-                                    </div>
-                                </div>
-
-                                <!-- Role Field -->
-                                <div class="form-input-premium">
-                                    <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                        </svg>
-                                        User Role <span class="text-red-400">*</span>
-                                    </label>
-                                    <select 
-                                        x-model="formData.role"
-                                        class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-100 transition-all duration-200 hover:border-slate-500 focus:ring-2 focus:ring-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}/50 focus:border-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}"
-                                        required
-                                    >
-                                        <option value="">Select a role</option>
-                                        <option value="customer">ðŸ‘¤ Customer</option>
-                                        <option value="staff">ðŸ‘· Staff</option>
-                                        <option value="administrator">ðŸ› ï¸ Administrator</option>
-                                        <option value="superadmin">ðŸ‘‘ Super Admin</option>
-                                    </select>
-                                    <div x-show="formErrors.role" class="mt-2 text-sm text-red-400 flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <span x-text="formErrors.role"></span>
-                                    </div>
-                                </div>
-
-                                <!-- Status Field -->
-                                <div class="form-input-premium">
-                                    <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        Status
-                                    </label>
-                                    <select 
-                                        x-model="formData.status"
-                                        class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-100 transition-all duration-200 hover:border-slate-500 focus:ring-2 focus:ring-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}/50 focus:border-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}"
-                                    >
-                                        <option value="active">ðŸŸ¢ Active</option>
-                                        <option value="inactive">ðŸ”´ Inactive</option>
-                                        <option value="pending">ðŸŸ¡ Pending</option>
-                                    </select>
+                                    <p x-show="formErrors.name" class="mt-1 text-sm text-red-600" x-text="formErrors.name"></p>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Password Fields -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Password Field -->
-                            <div class="form-input-premium">
-                                <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                    </svg>
-                                    Password <span class="text-red-400">*</span>
-                                </label>
-                                <div class="relative">
-                                    <input 
-                                        :type="showPassword ? 'text' : 'password'"
-                                        x-model="formData.password"
-                                        class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-100 placeholder-slate-400 transition-all duration-200 hover:border-slate-500 focus:ring-2 focus:ring-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}/50 focus:border-{{ $colorScheme === 'indigo' ? 'indigo-400' : 'sky-400' }}"
-                                        placeholder="Enter password"
-                                        required
-                                    >
-                                    <button type="button" 
-                                            @click="showPassword = !showPassword"
-                                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-300 transition-colors duration-200">
-                                        <svg x-show="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        <svg x-show="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div x-show="formErrors.password" class="mt-2 text-sm text-red-400 flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <span x-text="formErrors.password"></span>
-                                </div>
-                            </div>
-
-                        </div>
-
                     </div>
-
-                    <!-- Premium Action Buttons -->
-                    <div class="bg-gradient-to-r from-slate-800/50 to-slate-700/50 px-8 py-6 border-t border-slate-600/50 backdrop-blur-sm">
-                        <div class="flex justify-between items-center">
-                            <!-- Back Button -->
+                    
+                    <!-- Footer -->
+                    <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                        <div class="flex justify-end gap-3">
                             <button 
-                                x-show="modalStep > 1"
                                 type="button"
-                                @click="prevStep()"
-                                class="flex items-center gap-2 px-4 py-2.5 text-slate-300 hover:text-slate-100 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600/50 hover:border-slate-500 rounded-xl transition-all duration-200 font-medium"
+                                @click="closeAddModal()"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750"
                             >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                                </svg>
-                                Back
+                                Cancel
                             </button>
-
-                            <div class="flex gap-3">
-                                <!-- Cancel Button -->
-                                <button 
-                                    type="button"
-                                    @click="closeAddModal()"
-                                    class="px-6 py-2.5 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-slate-100 border border-slate-600/50 hover:border-slate-500 rounded-xl transition-all duration-200 font-medium"
-                                    :disabled="isSubmitting"
-                                >
-                                    Cancel
-                                </button>
-
-                                <!-- Next Button -->
-                                <button 
-                                    x-show="modalStep < modalSteps.length"
-                                    type="button"
-                                    @click="nextStep()"
-                                    class="btn-premium flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-{{ $colorScheme === 'indigo' ? 'indigo-500' : 'sky-500' }} to-{{ $colorScheme === 'indigo' ? 'purple-500' : 'cyan-500' }} hover:from-{{ $colorScheme === 'indigo' ? 'indigo-600' : 'sky-600' }} hover:to-{{ $colorScheme === 'indigo' ? 'purple-600' : 'cyan-600' }} text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-{{ $colorScheme === 'indigo' ? 'indigo-500' : 'sky-500' }}/25 transform hover:scale-[1.02]"
-                                >
-                                    Continue
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                    </svg>
-                                </button>
-
-                                <!-- Submit Button -->
-                                <button 
-                                    x-show="modalStep === modalSteps.length"
-                                    type="submit"
-                                    class="btn-premium flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-emerald-500/25 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                                    :disabled="isSubmitting"
-                                >
-                                    <template x-if="isSubmitting">
-                                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                    </template>
-                                    <template x-if="!isSubmitting">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                    </template>
-                                    <span x-text="isSubmitting ? 'Creating Item...' : 'Create Item'"></span>
-                                </button>
-                            </div>
+                            <button 
+                                type="submit"
+                                :disabled="isSubmitting"
+                                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                <svg x-show="isSubmitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span x-text="isSubmitting ? 'Saving...' : (formData.id ? 'Update' : 'Create')"></span>
+                            </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
 </div>
+
+<style>
+    /* Scrollbar styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #1e293b;
+        border-radius: 4px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 4px;
+        border: 1px solid #334155;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-corner {
+        background: #1e293b;
+    }
+
+    /* Mobile menu body scroll prevention */
+    .mobile-menu-open {
+        overflow: hidden;
+    }
+
+    /* Modal body scroll prevention */
+    .modal-open {
+        overflow: hidden;
+    }
+</style>

@@ -17,6 +17,11 @@ Route::get('/test-datatable', function () {
     return view('test-datatable');
 })->name('test.datatable');
 
+// Fixed data table test route
+Route::get('/test-datatable-fixed', function () {
+    return view('test-datatable-fixed');
+})->name('test.datatable.fixed');
+
 // Default dashboard route - redirects based on user role
 Route::get('/dashboard', function () {
     $user = auth()->user();
