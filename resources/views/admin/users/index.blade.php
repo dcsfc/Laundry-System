@@ -7,7 +7,7 @@
         <!-- User Management using Reusable Data Table -->
         <x-data-table
             :columns="$columns"
-            :data="$users"
+            :data="$data"
             :actions="$actions"
             :bulk-actions="false"
             :searchable="true"

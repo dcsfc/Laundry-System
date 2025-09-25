@@ -2,4 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import DataTable styles */
+@import './datatable.css';
+
 /* Make sure this file is processed by Tailwind CLI or a build tool like Laravel Mix, Vite, or Webpack */

@@ -16,7 +16,7 @@ class UserController extends Controller
 
         $user = User::create([
             // ...existing code...
-            'role_id' => Role::where('name', 'Customer')->first()->id,
+            'role_id' => Role::where('name', 'customer')->first()->id,
         ]);
 
         // ...existing code...

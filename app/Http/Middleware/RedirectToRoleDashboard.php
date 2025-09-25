@@ -8,24 +8,26 @@ class RedirectToRoleDashboard
 {
     public function handle($request, Closure $next)
     {
-        // Skip redirect for logout route and other auth routes
+        // Skip redirect for auth-related routes
         if ($request->is('logout') || $request->is('login') || $request->is('register') || $request->is('password/*')) {
             return $next($request);
         }
-        
+
         if (Auth::check()) {
-            $role = Auth::user()->role->name;
+            $role = strtolower(Auth::user()->role->name ?? 'customer');
             switch ($role) {
-                case 'Super Admin':
+                case 'superadmin':
                     return redirect()->route('superadmin.dashboard');
-                case 'Admin':
+                case 'administrator':
                     return redirect()->route('admin.dashboard');
-                case 'Staff':
+                case 'staff':
                     return redirect()->route('staff.dashboard');
-                case 'Customer':
+                case 'customer':
+                default:
                     return redirect()->route('customer.dashboard');
             }
         }
+
         return $next($request);
     }
 }

@@ -1,0 +1,374 @@
+/* Modern SaaS Table Headers - Professional Design System */
+
+/* Import Inter font for clean typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* CSS Custom Properties for consistent theming */
+:root {
+  /* Light theme colors */
+  --header-bg-light: #fafbfc;
+  --header-bg-light-hover: #f1f3f4;
+  --header-border-light: #e1e5e9;
+  --header-text-light: #374151;
+  --header-text-light-secondary: #6b7280;
+  --header-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+  /* Dark theme colors */
+  --header-bg-dark: #1f2937;
+  --header-bg-dark-hover: #374151;
+  --header-border-dark: #374151;
+  --header-text-dark: #f9fafb;
+  --header-text-dark-secondary: #d1d5db;
+  --header-shadow-dark: 0 1px 3px rgba(0, 0, 0, 0.3);
+  
+  /* Accent colors */
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #2563eb;
+  --accent-secondary: #6366f1;
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-error: #ef4444;
+  
+  /* Spacing system */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.25rem;
+  --spacing-2xl: 1.5rem;
+  
+  /* Typography scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  --header-bg: var(--header-bg-dark);
+  --header-bg-hover: var(--header-bg-dark-hover);
+  --header-border: var(--header-border-dark);
+  --header-text: var(--header-text-dark);
+  --header-text-secondary: var(--header-text-dark-secondary);
+  --header-shadow: var(--header-shadow-dark);
+}
+
+/* Light theme (default) */
+:root {
+  --header-bg: var(--header-bg-light);
+  --header-bg-hover: var(--header-bg-light-hover);
+  --header-border: var(--header-border-light);
+  --header-text: var(--header-text-light);
+  --header-text-secondary: var(--header-text-dark-secondary);
+  --header-shadow: var(--header-shadow-light);
+}
+
+/* Modern Table Header Container */
+.modern-table-header {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  box-shadow: var(--header-shadow);
+  backdrop-filter: blur(8px);
+  transition: all var(--transition-normal);
+}
+
+/* Header Row */
+.modern-table-header tr {
+  background: var(--header-bg);
+  transition: background-color var(--transition-fast);
+}
+
+.modern-table-header tr:hover {
+  background: var(--header-bg-hover);
+}
+
+/* Header Cells */
+.modern-table-header th {
+  position: relative;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--header-text);
+  letter-spacing: 0.025em;
+  text-transform: none;
+  white-space: nowrap;
+  border: none;
+  background: transparent;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+/* Header cell content container */
+.modern-table-header th .header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  min-height: 1.5rem;
+}
+
+/* Header text styling */
+.modern-table-header th .header-text {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--header-text);
+  line-height: 1.5;
+  transition: color var(--transition-fast);
+}
+
+/* Sort button styling */
+.modern-table-header th .sort-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--header-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  opacity: 0.6;
+}
+
+.modern-table-header th .sort-button:hover {
+  background: var(--header-bg-hover);
+  border-color: var(--header-border);
+  color: var(--header-text);
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.modern-table-header th .sort-button:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Active sort state */
+.modern-table-header th .sort-button.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+  opacity: 1;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+/* Sort icons */
+.modern-table-header th .sort-icons {
+  position: relative;
+  width: 0.75rem;
+  height: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modern-table-header th .sort-icon {
+  position: absolute;
+  width: 0.5rem;
+  height: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.modern-table-header th .sort-icon-up {
+  top: 0;
+  opacity: 0.4;
+}
+
+.modern-table-header th .sort-icon-down {
+  bottom: 0;
+  opacity: 0.4;
+}
+
+/* Active sort icon */
+.modern-table-header th .sort-button.active .sort-icon-up.active,
+.modern-table-header th .sort-button.active .sort-icon-down.active {
+  opacity: 1;
+  color: white;
+}
+
+/* Hover effects for sort icons */
+.modern-table-header th .sort-button:hover .sort-icon {
+  opacity: 0.7;
+}
+
+/* Column separator */
+.modern-table-header th:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 1px;
+  background: var(--header-border);
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+}
+
+.modern-table-header th:hover:not(:last-child)::after {
+  opacity: 0.8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .modern-table-header th {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--text-xs);
+  }
+  
+  .modern-table-header th .header-text {
+    font-size: var(--text-xs);
+  }
+  
+  .modern-table-header th .sort-button {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modern-table-header th {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .modern-table-header th .header-content {
+    gap: var(--spacing-xs);
+  }
+}
+
+/* Animation for header appearance */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modern-table-header {
+  animation: slideDown var(--transition-normal) ease-out;
+}
+
+/* Focus management for accessibility */
+.modern-table-header th:focus-within {
+  background: var(--header-bg-hover);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .modern-table-header th {
+    border: 1px solid var(--header-text);
+  }
+  
+  .modern-table-header th .sort-button {
+    border: 1px solid var(--header-text);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .modern-table-header th,
+  .modern-table-header th .sort-button,
+  .modern-table-header th .sort-icon {
+    transition: none;
+  }
+  
+  .modern-table-header {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .modern-table-header {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    border-bottom: 2px solid black !important;
+  }
+  
+  .modern-table-header th {
+    color: black !important;
+    background: white !important;
+  }
+  
+  .modern-table-header th .sort-button {
+    display: none !important;
+  }
+}
+
+/* Color scheme variations */
+.modern-table-header.primary {
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #2563eb;
+}
+
+.modern-table-header.success {
+  --accent-primary: #10b981;
+  --accent-primary-hover: #059669;
+}
+
+.modern-table-header.warning {
+  --accent-primary: #f59e0b;
+  --accent-primary-hover: #d97706;
+}
+
+.modern-table-header.error {
+  --accent-primary: #ef4444;
+  --accent-primary-hover: #dc2626;
+}
+
+.modern-table-header.purple {
+  --accent-primary: #8b5cf6;
+  --accent-primary-hover: #7c3aed;
+}
+
+.modern-table-header.indigo {
+  --accent-primary: #6366f1;
+  --accent-primary-hover: #4f46e5;
+}
+
+/* Glass morphism variant */
+.modern-table-header.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .modern-table-header.glass {
+  background: rgba(31, 41, 55, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Subtle shadow variant */
+.modern-table-header.shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .modern-table-header.shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}

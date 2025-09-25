@@ -125,6 +125,7 @@
       display: none; /* WebKit */
     }
   </style>
+  @stack('styles')
 </head>
 <body>
   @include('components.header')
@@ -169,29 +170,24 @@
         </a>
       @endif
 
-      <!-- Service Management - Super Admin & Admin -->
-      @if($isSuperAdmin || $isAdmin)
-        <a href="{{ $isSuperAdmin ? route('superadmin.services.index') : route('admin.services.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs(($isSuperAdmin ? 'superadmin' : 'admin') . '.services.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-concierge-bell w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs(($isSuperAdmin ? 'superadmin' : 'admin') . '.services.*') ? 'text-white' : 'text-slate-400' }}"></i>
+      <!-- Service Management - Admin Only -->
+      @if($isAdmin)
+        <a href="{{ route('admin.services.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('admin.services.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
+          <i class="sidebar-icon fas fa-concierge-bell w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('admin.services.*') ? 'text-white' : 'text-slate-400' }}"></i>
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Service Management</span>
         </a>
       @endif
 
-      <!-- Orders / Transactions - All Roles Except Customer -->
-      @if($isSuperAdmin || $isAdmin || $isStaff)
-        <a href="{{ $isSuperAdmin ? route('superadmin.orders.index') : ($isAdmin ? route('admin.orders.index') : route('staff.orders.index')) }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs(($isSuperAdmin ? 'superadmin' : ($isAdmin ? 'admin' : 'staff')) . '.orders.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-shopping-cart w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs(($isSuperAdmin ? 'superadmin' : ($isAdmin ? 'admin' : 'staff')) . '.orders.*') ? 'text-white' : 'text-slate-400' }}"></i>
+      <!-- Orders / Transactions - Admin & Staff Only -->
+      @if($isAdmin || $isStaff)
+        <a href="{{ $isAdmin ? route('admin.orders.index') : route('staff.orders.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.orders.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
+          <i class="sidebar-icon fas fa-shopping-cart w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.orders.*') ? 'text-white' : 'text-slate-400' }}"></i>
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Orders / Transactions</span>
         </a>
       @endif
 
-      <!-- Schedules - All Roles -->
-      @if($isSuperAdmin)
-        <a href="{{ route('superadmin.schedules.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('superadmin.schedules.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-calendar-alt w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('superadmin.schedules.*') ? 'text-white' : 'text-slate-400' }}"></i>
-          <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Schedules</span>
-        </a>
-      @elseif($isAdmin)
+      <!-- Schedules - Admin, Staff & Customer Only -->
+      @if($isAdmin)
         <a href="{{ route('admin.schedules.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('admin.schedules.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
           <i class="sidebar-icon fas fa-calendar-alt w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('admin.schedules.*') ? 'text-white' : 'text-slate-400' }}"></i>
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Schedules</span>
@@ -208,29 +204,24 @@
         </a>
       @endif
 
-      <!-- Payments - Super Admin, Admin & Staff -->
-      @if($isSuperAdmin || $isAdmin || $isStaff)
-        <a href="{{ $isSuperAdmin ? route('superadmin.payments.index') : ($isAdmin ? route('admin.payments.index') : route('staff.payments.index')) }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs(($isSuperAdmin ? 'superadmin' : ($isAdmin ? 'admin' : 'staff')) . '.payments.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-credit-card w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs(($isSuperAdmin ? 'superadmin' : ($isAdmin ? 'admin' : 'staff')) . '.payments.*') ? 'text-white' : 'text-slate-400' }}"></i>
+      <!-- Payments - Admin & Staff Only -->
+      @if($isAdmin || $isStaff)
+        <a href="{{ $isAdmin ? route('admin.payments.index') : route('staff.payments.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.payments.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
+          <i class="sidebar-icon fas fa-credit-card w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.payments.*') ? 'text-white' : 'text-slate-400' }}"></i>
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Payments</span>
         </a>
       @endif
 
-      <!-- Inventory - Super Admin, Admin & Staff -->
-      @if($isSuperAdmin || $isAdmin || $isStaff)
-        <a href="{{ $isSuperAdmin ? route('superadmin.inventory.index') : ($isAdmin ? route('admin.inventory.index') : route('staff.inventory.index')) }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs(($isSuperAdmin ? 'superadmin' : ($isAdmin ? 'admin' : 'staff')) . '.inventory.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-boxes w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs(($isSuperAdmin ? 'superadmin' : ($isAdmin ? 'admin' : 'staff')) . '.inventory.*') ? 'text-white' : 'text-slate-400' }}"></i>
+      <!-- Inventory - Admin & Staff Only -->
+      @if($isAdmin || $isStaff)
+        <a href="{{ $isAdmin ? route('admin.inventory.index') : route('staff.inventory.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.inventory.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
+          <i class="sidebar-icon fas fa-boxes w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.inventory.*') ? 'text-white' : 'text-slate-400' }}"></i>
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Inventory</span>
         </a>
       @endif
 
-      <!-- Reports - All Roles (Different Access Levels) -->
-      @if($isSuperAdmin)
-        <a href="{{ route('superadmin.reports.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('superadmin.reports.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-chart-bar w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('superadmin.reports.*') ? 'text-white' : 'text-slate-400' }}"></i>
-          <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Reports</span>
-        </a>
-      @elseif($isAdmin)
+      <!-- Reports - Admin & Staff Only (Different Access Levels) -->
+      @if($isAdmin)
         <a href="{{ route('admin.reports.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('admin.reports.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
           <i class="sidebar-icon fas fa-chart-bar w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-400' }}"></i>
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Reports</span>
@@ -272,6 +263,7 @@
     @yield('content')
   </div>
   @include('components.footer')
+  @stack('scripts')
 
 </body>
 </html>

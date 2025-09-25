@@ -311,13 +311,13 @@
                     </div>
                 </button>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-amber-500 hover:border-amber-400 transition-all duration-300 hover:scale-105">
-                    <div class="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i class="fas fa-download text-amber-400"></i>
+                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-purple-500 hover:border-purple-400 transition-all duration-300 hover:scale-105">
+                    <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-shield-alt text-purple-400"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-slate-50 font-medium group-hover:text-white">Export Report</h4>
-                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Download analytics</p>
+                        <h4 class="text-slate-50 font-medium group-hover:text-white">System Health</h4>
+                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Monitor system status</p>
                     </div>
                 </button>
             </div>

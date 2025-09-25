@@ -4,25 +4,20 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Models\User;
 use App\Models\Role;
-use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Str;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
     public function index()
     {
-        // Increase execution time limit
         set_time_limit(120);
         
-        // Load roles for the form and filter dropdowns with caching
         $roles = cache()->remember('roles_list', 300, function() {
             return Role::orderBy('name')->get();
         });
         
-        // Load only a limited number of users for initial display (pagination will handle the rest)
         $users = User::with(['role', 'createdBy'])
             ->select([
                 'users.id',
@@ -34,33 +29,27 @@ class UserController extends Controller
                 'users.role_id',
                 'users.created_by'
             ])
-            ->limit(50) // Limit initial load to prevent timeout
+            ->limit(50)
             ->orderBy('users.id', 'desc')
-            ->get()
-            ->map(function ($user) {
-                // Get creator's name
-                $creatorName = 'System';
-                if ($user->created_by && $user->createdBy) {
-                    $creatorName = $user->createdBy->name;
-                } elseif ($user->created_by) {
-                    $creator = User::find($user->created_by);
-                    $creatorName = $creator ? $creator->name : 'Unknown User';
-                }
-                
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone_number' => $user->phone_number ?? 'N/A',
-                    'role' => $user->role ? ucfirst($user->role->name) : 'No Role',
-                    'status' => ucfirst($user->status ?? 'Active'),
-                    'created_at' => $user->created_at ? $user->created_at->format('M d, Y') : 'N/A',
-                    'created_by' => $user->created_by,
-                    'created_by_name' => $creatorName,
-                    'account_age' => $user->created_at ? floor($user->created_at->diffInDays(now())) . ' days' : 'N/A'
-                ];
-            });
-
+            ->get();
+            
+        if ($users->isEmpty()) {
+            $users = User::select([
+                'users.id',
+                'users.name',
+                'users.email',
+                'users.phone_number',
+                'users.status',
+                'users.created_at',
+                'users.role_id',
+                'users.created_by'
+            ])
+            ->limit(50)
+            ->orderBy('users.id', 'desc')
+            ->get();
+        }
+            
+        
         // Define columns for the data table
         $columns = [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true],
@@ -70,72 +59,55 @@ class UserController extends Controller
             ['key' => 'role', 'label' => 'Role', 'sortable' => true],
             ['key' => 'status', 'label' => 'Status', 'sortable' => true],
             ['key' => 'created_at', 'label' => 'Created', 'sortable' => true],
-            ['key' => 'created_by', 'label' => 'Created By', 'sortable' => true],
+            ['key' => 'created_by_name', 'label' => 'Created By', 'sortable' => true],
             ['key' => 'account_age', 'label' => 'Account Age', 'sortable' => true]
         ];
 
         // Define actions for the data table
         $actions = [
-            ['label' => 'View', 'onclick' => 'viewUser'],
-            ['label' => 'Edit', 'onclick' => 'editUser'],
-            ['label' => 'Toggle Status', 'onclick' => 'toggleUserStatus'],
-            ['label' => 'Delete', 'onclick' => 'deleteUser']
+            ['key' => 'viewUser', 'label' => 'View', 'onclick' => 'viewUser'],
+            ['key' => 'editUser', 'label' => 'Edit', 'onclick' => 'editUser'],
+            ['key' => 'toggleUserStatus', 'label' => 'Toggle Status', 'onclick' => 'toggleUserStatus'],
+            ['key' => 'deleteUser', 'label' => 'Delete', 'onclick' => 'deleteUser']
         ];
         
-        // Debug: Log the data being passed to the view
-        \Log::info('UserController - Users count: ' . $users->count());
-        \Log::info('UserController - First user: ' . json_encode($users->first()));
-        
-        return view('superadmin.users.usermanagement', compact('roles', 'users', 'columns', 'actions'));
-    }
-
-    public function debug()
-    {
-        try {
-            // Test basic database connection
-            $userCount = User::count();
-            $roleCount = Role::count();
+        $users = $users->map(function ($user) {
+            $creatorName = 'System';
+            if ($user->created_by && $user->createdBy) {
+                $creatorName = $user->createdBy->name;
+            } elseif ($user->created_by) {
+                $creator = User::find($user->created_by);
+                $creatorName = $creator ? $creator->name : 'Unknown User';
+            }
             
-            return response()->json([
-                'status' => 'success',
-                'user_count' => $userCount,
-                'role_count' => $roleCount,
-                'message' => 'Database connection working'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number ?? 'N/A',
+                'role' => $user->role ? ucfirst($user->role->name) : 'No Role',
+                'status' => ucfirst($user->status ?? 'Active'),
+                'created_at' => $user->created_at ? $user->created_at->format('M d, Y') : 'N/A',
+                'created_by' => $user->created_by,
+                'created_by_name' => $creatorName,
+                'account_age' => $user->created_at ? floor($user->created_at->diffInDays(now())) . ' days' : 'N/A'
+            ];
+        })->toArray();
+        
+        return view('superadmin.users.index', compact('roles', 'columns', 'actions') + ['data' => $users]);
     }
 
     public function fetchUsers(Request $request)
     {
         try {
-            // Increase execution time limit
             set_time_limit(120);
             
-            // Get DataTables parameters
             $draw = $request->get('draw');
             $start = (int) $request->get('start', 0);
             $length = (int) $request->get('length', 10);
             $search = $request->get('search')['value'] ?? '';
-            
-            // Get custom filters
             $roleFilter = $request->get('role');
             $statusFilter = $request->get('status');
-            
-            // Debug logging
-            \Log::info('DataTables request:', [
-                'draw' => $draw,
-                'start' => $start,
-                'length' => $length,
-                'search' => $search,
-                'role_filter' => $roleFilter,
-                'status_filter' => $statusFilter,
-                'order' => $request->get('order')
-            ]);
 
             // Build query with proper joins for role filtering and creator info
             $query = User::select([
@@ -187,7 +159,7 @@ class UserController extends Controller
                     4 => 'roles.name',
                     5 => 'users.status',
                     6 => 'users.created_at',
-                    7 => 'users.created_by',
+                    7 => 'creator.name', // created_by_name maps to creator.name
                     8 => 'users.created_at' // account_age is calculated from created_at
                 ];
                 
@@ -200,30 +172,8 @@ class UserController extends Controller
             }
 
             return DataTables::of($query)
-                ->addColumn('created_by', function ($user) {
-                    // Debug logging
-                    \Log::info('User created_by debug:', [
-                        'user_id' => $user->id,
-                        'user_name' => $user->name,
-                        'created_by' => $user->created_by,
-                        'created_by_name' => $user->created_by_name ?? 'null'
-                    ]);
-                    
-                    // Use the joined creator name if available
-                    if ($user->created_by_name) {
-                        return $user->created_by_name;
-                    }
-                    
-                    // If no joined name, try to get it directly
-                    if ($user->created_by) {
-                        $creator = User::find($user->created_by);
-                        if ($creator) {
-                            return $creator->name;
-                        }
-                    }
-                    
-                    // Fallback to System if no creator
-                    return 'System';
+                ->addColumn('created_by_name', function ($user) {
+                    return $user->created_by_name ?? 'System';
                 })
                 ->addColumn('account_age', function ($user) {
                     if (!$user->created_at) return '0 days';
@@ -235,14 +185,9 @@ class UserController extends Controller
                 ->make(true);
                 
         } catch (\Exception $e) {
-            \Log::error('Error fetching users:', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Error fetching users: ' . $e->getMessage());
             return response()->json([
-                'error' => 'Failed to fetch users: ' . $e->getMessage(),
+                'error' => 'Failed to fetch users',
                 'draw' => $request->get('draw', 1),
                 'recordsTotal' => 0,
                 'recordsFiltered' => 0,
@@ -707,11 +652,11 @@ class UserController extends Controller
                     'created_by_name' => $user->createdBy ? $user->createdBy->name : 'System',
                     'account_age' => $user->created_at ? floor($user->created_at->diffInDays(now())) . ' days' : 'N/A'
                 ];
-            });
+            })->toArray(); // Convert to array for the data table
 
         // If no users found, create some sample data for testing
-        if ($users->isEmpty()) {
-            $users = collect([
+        if (empty($users)) {
+            $users = [
                 [
                     'id' => 1,
                     'name' => 'Maria Santos',
@@ -748,7 +693,7 @@ class UserController extends Controller
                     'created_by_name' => 'System',
                     'account_age' => '35 days'
                 ]
-            ]);
+            ];
         }
 
         // Define columns for the data table
@@ -765,15 +710,15 @@ class UserController extends Controller
 
         // Define actions for the data table
         $actions = [
-            ['label' => 'View', 'onclick' => 'viewUser'],
-            ['label' => 'Edit', 'onclick' => 'editUser'],
-            ['label' => 'View Activity', 'onclick' => 'viewUserActivity'],
-            ['label' => 'Deactivate', 'onclick' => 'deactivateUser']
+            ['key' => 'viewUser', 'label' => 'View', 'onclick' => 'viewUser'],
+            ['key' => 'editUser', 'label' => 'Edit', 'onclick' => 'editUser'],
+            ['key' => 'viewUserActivity', 'label' => 'View Activity', 'onclick' => 'viewUserActivity'],
+            ['key' => 'deactivateUser', 'label' => 'Deactivate', 'onclick' => 'deactivateUser']
         ];
 
         $description = 'Manage staff and customer accounts, view their activity, and handle user support';
 
-        return view('admin.users.index', compact('users', 'columns', 'actions', 'description', 'roles'));
+        return view('admin.users.index', compact('columns', 'actions', 'description', 'roles') + ['data' => $users]);
     }
 
 }

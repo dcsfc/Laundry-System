@@ -75,16 +75,38 @@ class AnnouncementController extends Controller {
         return view('superadmin.announcements.create');
     }
     public function store(Request $request) {
-        $request->validate(['title' => 'required', 'body' => 'required']);
-        Announcement::create($request->all());
+        $request->validate([
+            'title' => 'required|string|max:255',
+            // Accept either 'message' or legacy 'body'
+            'message' => 'nullable|string',
+            'body' => 'nullable|string',
+        ]);
+
+        $payload = [
+            'title' => $request->title,
+            'message' => $request->message ?? $request->body,
+            'created_by' => auth()->id() ?? 1,
+        ];
+
+        Announcement::create($payload);
         return redirect()->route('superadmin.announcements.index');
     }
     public function edit(Announcement $announcement) {
         return view('superadmin.announcements.edit', compact('announcement'));
     }
     public function update(Request $request, Announcement $announcement) {
-        $request->validate(['title' => 'required', 'body' => 'required']);
-        $announcement->update($request->all());
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'message' => 'nullable|string',
+            'body' => 'nullable|string',
+        ]);
+
+        $payload = [
+            'title' => $request->title,
+            'message' => $request->message ?? $request->body,
+        ];
+
+        $announcement->update($payload);
         return redirect()->route('superadmin.announcements.index');
     }
     public function destroy(Announcement $announcement) {

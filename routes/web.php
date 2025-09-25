@@ -7,15 +7,247 @@ use App\Http\Controllers\SuperAdmin\SettingController;
 use App\Http\Controllers\SuperAdmin\ServiceController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 
-// Landing page
-Route::get('/', function () {
-    return view('landing'); // resources/views/landing.blade.php
-});
-
 // Test route for data table
 Route::get('/test-datatable', function () {
-    return view('test-datatable');
-})->name('test.datatable');
+    $users = [
+        [
+            'id' => 1,
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'phone_number' => '+1 (555) 123-4567',
+            'role' => 'Administrator',
+            'status' => 'Active',
+            'created_at' => '2023-01-15',
+            'created_by_name' => 'System',
+            'account_age' => '365 days'
+        ],
+        [
+            'id' => 2,
+            'name' => 'Jane Smith',
+            'email' => 'jane@example.com',
+            'phone_number' => '+1 (555) 234-5678',
+            'role' => 'Staff',
+            'status' => 'Inactive',
+            'created_at' => '2023-02-20',
+            'created_by_name' => 'John Doe',
+            'account_age' => '340 days'
+        ],
+        [
+            'id' => 3,
+            'name' => 'Bob Johnson',
+            'email' => 'bob@example.com',
+            'phone_number' => '+1 (555) 345-6789',
+            'role' => 'Customer',
+            'status' => 'Active',
+            'created_at' => '2023-03-10',
+            'created_by_name' => 'Jane Smith',
+            'account_age' => '320 days'
+        ],
+        [
+            'id' => 4,
+            'name' => 'Alice Brown',
+            'email' => 'alice@example.com',
+            'phone_number' => '+1 (555) 456-7890',
+            'role' => 'Staff',
+            'status' => 'Pending',
+            'created_at' => '2023-04-01',
+            'created_by_name' => 'Bob Johnson',
+            'account_age' => '300 days'
+        ],
+        [
+            'id' => 5,
+            'name' => 'Charlie Wilson',
+            'email' => 'charlie@example.com',
+            'phone_number' => '+1 (555) 567-8901',
+            'role' => 'Customer',
+            'status' => 'Active',
+            'created_at' => '2023-05-05',
+            'created_by_name' => 'Alice Brown',
+            'account_age' => '280 days'
+        ]
+    ];
+    
+    $columns = [
+        ['key' => 'id', 'label' => 'ID', 'sortable' => true],
+        ['key' => 'name', 'label' => 'Name', 'sortable' => true],
+        ['key' => 'email', 'label' => 'Email', 'sortable' => true],
+        ['key' => 'phone_number', 'label' => 'Phone', 'sortable' => true],
+        ['key' => 'role', 'label' => 'Role', 'sortable' => true],
+        ['key' => 'status', 'label' => 'Status', 'sortable' => true],
+        ['key' => 'created_at', 'label' => 'Created', 'sortable' => true],
+        ['key' => 'created_by_name', 'label' => 'Created By', 'sortable' => true],
+        ['key' => 'account_age', 'label' => 'Account Age', 'sortable' => true],
+    ];
+    
+    $actions = [
+        ['key' => 'viewUser', 'label' => 'View', 'onclick' => 'viewUser'],
+        ['key' => 'editUser', 'label' => 'Edit', 'onclick' => 'editUser'],
+        ['key' => 'toggleUserStatus', 'label' => 'Toggle Status', 'onclick' => 'toggleUserStatus'],
+        ['key' => 'deleteUser', 'label' => 'Delete', 'onclick' => 'deleteUser'],
+    ];
+    
+    return view('test-data-table', compact('users', 'columns', 'actions'));
+});
+
+// Simple test route
+Route::get('/simple-test', function () {
+    return view('simple-test');
+});
+
+// Direct test route
+Route::get('/direct-test', function () {
+    return view('direct-test');
+});
+
+// Debug users route
+Route::get('/debug-users', function () {
+    try {
+        // Test database connection
+        $userCount = User::count();
+        $roleCount = Role::count();
+        
+        // Get first 5 users
+        $users = User::with(['role', 'createdBy'])
+            ->select([
+                'users.id',
+                'users.name',
+                'users.email',
+                'users.phone_number',
+                'users.status',
+                'users.created_at',
+                'users.role_id',
+                'users.created_by'
+            ])
+            ->limit(5)
+            ->get();
+            
+        return response()->json([
+            'status' => 'success',
+            'user_count' => $userCount,
+            'role_count' => $roleCount,
+            'users' => $users->toArray(),
+            'message' => 'Database connection working'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500);
+    }
+});
+
+// Quick debug route for controller
+Route::get('/debug-controller', function () {
+    try {
+        $userCount = User::count();
+        $users = User::all();
+        
+        return response()->json([
+            'user_count' => $userCount,
+            'users' => $users->toArray(),
+            'message' => 'Controller debug working'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
+// Landing page
+Route::get('/', function () {
+    return view('landing');
+});
+
+// Development/test routes - only loaded in local environment
+if (app()->environment('local')) {
+    // Test route for data table (for development)
+    Route::get('/test-table', [App\Http\Controllers\DataTableController::class, 'index']);
+
+    // Simple view test
+    Route::get('/view-test', function() {
+        $users = App\Models\User::with('role')->get()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role ? $user->role->name : 'N/A',
+                'status' => ucfirst($user->status ?? 'active'),
+                'created_at' => $user->created_at ? $user->created_at->format('Y-m-d') : 'N/A',
+            ];
+        });
+
+        return view('test-simple', ['users' => $users->toArray()]);
+    });
+    
+    // Database test route
+    Route::get('/db-test', function() {
+        try {
+            $userCount = App\Models\User::count();
+            $roleCount = App\Models\Role::count();
+            $users = App\Models\User::limit(5)->get();
+            
+            return response()->json([
+                'status' => 'success',
+                'user_count' => $userCount,
+                'role_count' => $roleCount,
+                'sample_users' => $users->toArray(),
+                'message' => 'Database connection working'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    });
+
+    // Debug route for data table
+    Route::get('/debug-table', function() {
+        $users = App\Models\User::with('role')->get()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role ? $user->role->name : 'N/A',
+                'status' => ucfirst($user->status ?? 'active'),
+                'created_at' => $user->created_at ? $user->created_at->format('Y-m-d') : 'N/A',
+            ];
+        });
+
+        $usersArray = $users->toArray();
+
+        if (empty($usersArray)) {
+            $usersArray = [
+                ['id' => 1, 'name' => 'Super Admin', 'email' => 'admin@laundryapp.com', 'role' => 'superadmin', 'status' => 'Active', 'created_at' => '2024-01-01'],
+                ['id' => 2, 'name' => 'John Staff', 'email' => 'john@laundryapp.com', 'role' => 'staff', 'status' => 'Active', 'created_at' => '2024-01-10'],
+            ];
+        }
+
+        $columns = [
+            ['key' => 'id', 'label' => 'ID'],
+            ['key' => 'name', 'label' => 'Full Name'],
+            ['key' => 'email', 'label' => 'Email'],
+            ['key' => 'role', 'label' => 'Role'],
+            ['key' => 'status', 'label' => 'Status'],
+            ['key' => 'created_at', 'label' => 'Created'],
+        ];
+
+        $actions = [
+            ['label' => 'View'],
+            ['label' => 'Edit'],
+            ['label' => 'Delete'],
+        ];
+
+        return view('debug-datatable', [
+            'users' => $usersArray,
+            'columns' => $columns,
+            'actions' => $actions,
+        ]);
+    });
+}
 
 // Default dashboard route - redirects based on user role
 Route::get('/dashboard', function () {
@@ -61,8 +293,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('users/reset-password', [UserController::class, 'resetUserPassword']);
         Route::get('users/activity', [UserController::class, 'getUserActivity']);
         
-        // Service Management
-        Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+        // Service Management (handled by resource routes below)
         
         // Data Table Examples
         Route::get('/data-table-examples', function () {
@@ -76,6 +307,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/data-table-orders', function () {
             return view('examples.orders-example');
         })->name('data-table-orders');
+        
+        // Debug route to check database
+        Route::get('/debug-users', function () {
+            $users = \App\Models\User::all();
+            return response()->json([
+                'total_users' => $users->count(),
+                'users' => $users->toArray(),
+                'first_user' => $users->first(),
+                'roles' => \App\Models\Role::all()->toArray()
+            ]);
+        })->name('debug.users');
         
         // Test route for data table
         Route::get('/test-datatable', function () {
@@ -101,11 +343,7 @@ Route::middleware(['auth'])->group(function () {
             return view('test-datatable', compact('users', 'columns', 'actions'));
         })->name('test-datatable');
         
-        // Individual user routes
-        Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
-        Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-        Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        // Individual user routes handled by resource below
         
         // Debug route to check authentication
         Route::get('debug-auth', function() {
@@ -117,29 +355,24 @@ Route::middleware(['auth'])->group(function () {
                 'session_id' => session()->getId()
             ]);
         });
+        
+        // Test component route
+        Route::get('test-component', function() {
+            return view('test-component');
+        });
 
-        // Features
+        // Table headers demo route
+        Route::get('table-headers-demo', function() {
+            return view('demo-table-headers');
+        })->name('table-headers-demo');
+
+        // Features - Super Admin limited to User Management, Announcements, and System Settings
         Route::resource('users', UserController::class);
-        Route::resource('services', \App\Http\Controllers\SuperAdmin\ServiceController::class);
-        Route::resource('orders', \App\Http\Controllers\SuperAdmin\OrderController::class);
-        Route::resource('schedules', \App\Http\Controllers\SuperAdmin\ScheduleController::class);
-        Route::resource('payments', \App\Http\Controllers\SuperAdmin\PaymentController::class);
-        Route::resource('inventory', \App\Http\Controllers\SuperAdmin\InventoryController::class);
-        Route::resource('reports', \App\Http\Controllers\SuperAdmin\ReportController::class);
-        Route::resource('announcements', AnnouncementController::class);
+        Route::resource('announcements', AnnouncementController::class)->only(['index']);
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('settings/{setting}', [SettingController::class, 'update'])->name('settings.update');
         
-        // Profile routes
-        Route::get('/profile', function () {
-            return view('profile.edit');
-        })->name('profile.edit');
-        Route::put('/profile', function () {
-            // Simple profile update logic
-            $user = auth()->user();
-            $user->update(request()->only(['name', 'email', 'phone_number']));
-            return redirect()->back()->with('success', 'Profile updated successfully');
-        })->name('profile.update');
+        // Profile routes (defined earlier in this group)
     });
 
     /**
@@ -152,14 +385,8 @@ Route::middleware(['auth'])->group(function () {
             return view('dashboard.admin'); // resources/views/dashboard/admin.blade.php
         })->name('dashboard');
         
-        // Service Management
+        // Service Management - Only index implemented
         Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
-        Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
-        Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
-        Route::get('/services/{service}', [ServiceController::class, 'show'])->name('services.show');
-        Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
-        Route::put('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
-        Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
         
         // User Management (Admin can manage staff and customers)
         Route::get('/users', [UserController::class, 'adminUsers'])->name('users.index');

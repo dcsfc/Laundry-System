@@ -4,8 +4,6 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Order;
-use App\Models\Payment;
 use App\Models\Announcement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,11 +36,7 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
         
-        // Get recent orders
-        $recentOrders = Order::with(['customer', 'staff'])
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
+        // Orders removed from Super Admin access
         
         // Get user growth data for the last 6 months
         $userGrowthData = User::select(
@@ -83,33 +77,7 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
         
-        // Get orders statistics
-        $totalOrders = Order::count();
-        $completedOrders = Order::where('status', 'completed')->count();
-        $pendingOrders = Order::whereIn('status', ['scheduled', 'priced', 'in_progress'])->count();
-        $totalRevenue = Payment::where('payment_status', 'paid')->sum('amount');
-        
-        // Get monthly revenue for the last 6 months
-        $revenueData = Payment::select(
-                DB::raw('strftime("%Y-%m", paid_at) as month'),
-                DB::raw('SUM(amount) as total')
-            )
-            ->where('payment_status', 'paid')
-            ->where('paid_at', '>=', Carbon::now()->subMonths(6))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('total', 'month')
-            ->toArray();
-        
-        // Fill in missing months with 0 values for revenue
-        foreach ($months as $month) {
-            if (!isset($revenueData[$month])) {
-                $revenueData[$month] = 0;
-            }
-        }
-        
-        // Sort by month
-        ksort($revenueData);
+        // Order and payment statistics removed from Super Admin access
         
         return view('dashboard.superadmin', compact(
             'totalUsers',
@@ -117,15 +85,9 @@ class DashboardController extends Controller
             'staff',
             'customers',
             'recentAnnouncements',
-            'recentOrders',
             'userGrowthData',
             'roleDistribution',
-            'recentUsers',
-            'totalOrders',
-            'completedOrders',
-            'pendingOrders',
-            'totalRevenue',
-            'revenueData'
+            'recentUsers'
         ));
     }
 }
