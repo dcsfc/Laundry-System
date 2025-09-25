@@ -20,12 +20,10 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/data-table.css') }}">
-<link rel="stylesheet" href="{{ asset('css/table-headers.css') }}">
 @endpush
 
 @push('scripts')
 <script src="{{ asset('js/data-table.js') }}"></script>
-<script src="{{ asset('js/table-headers.js') }}"></script>
 @endpush
 
 @php
@@ -317,64 +315,56 @@
                         @endforeach
                         @if(count($actions) > 0)
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
-                            <div class="relative" x-data="{ 
-                                open: false, 
-                                position: 'bottom-left',
-                                calculatePosition() {
-                                    if (!this.$refs.button) return;
-                                    
-                                    const button = this.$refs.button;
-                                    const rect = button.getBoundingClientRect();
-                                    const viewportHeight = window.innerHeight;
-                                    const viewportWidth = window.innerWidth;
-                                    
-                                    // Check available space
-                                    const spaceBelow = viewportHeight - rect.bottom;
-                                    const spaceAbove = rect.top;
-                                    const spaceRight = viewportWidth - rect.right;
-                                    const spaceLeft = rect.left;
-                                    
-                                    // Menu dimensions (approximate)
-                                    const menuHeight = 200; // Approximate height for 4-5 menu items
-                                    const menuWidth = 192; // w-48 = 12rem = 192px
-                                    
-                                    let verticalPos = 'bottom';
-                                    let horizontalPos = 'left'; // Default to left positioning
-                                    
-                                    // Determine vertical position - prefer bottom, but use top if not enough space
-                                    if (spaceBelow < menuHeight && spaceAbove > menuHeight) {
-                                        verticalPos = 'top';
+                            <div class="relative" 
+                                 x-data="{ 
+                                    open: false, 
+                                    position: 'bottom-left',
+                                    calculatePosition() {
+                                        this.$nextTick(() => {
+                                            const button = this.$refs.button;
+                                            const menu = this.$refs.menu;
+                                            if (!button || !menu) return;
+
+                                            const rect = button.getBoundingClientRect();
+                                            const viewportHeight = window.innerHeight;
+                                            const viewportWidth = window.innerWidth;
+
+                                            const menuHeight = menu.offsetHeight || 0;
+                                            const menuWidth = menu.offsetWidth || 0;
+
+                                            let verticalPos = 'bottom';
+                                            let horizontalPos = 'left';
+
+                                            if ((viewportHeight - rect.bottom) < menuHeight && rect.top > menuHeight) {
+                                                verticalPos = 'top';
+                                            }
+
+                                            if (rect.left < (menuWidth + 20) && (viewportWidth - rect.right) > (menuWidth + 20)) {
+                                                horizontalPos = 'right';
+                                            }
+
+                                            this.position = `${verticalPos}-${horizontalPos}`;
+                                        });
+                                    },
+                                    init() {
+                                        const reposition = () => { if (this.open) { this.calculatePosition(); } };
+                                        window.addEventListener('resize', reposition, { passive: true });
+                                        window.addEventListener('scroll', reposition, true);
+                                        this.$nextTick(() => {
+                                            const btn = this.$refs.button;
+                                            if (btn) {
+                                                const scroller = btn.closest('.overflow-x-auto');
+                                                if (scroller) scroller.addEventListener('scroll', reposition, { passive: true });
+                                            }
+                                        });
                                     }
-                                    
-                                    // Determine horizontal position - prefer left, but use right if not enough space
-                                    // Add buffer to ensure menu doesn't get clipped
-                                    if (spaceLeft < (menuWidth + 20) && spaceRight > (menuWidth + 20)) {
-                                        horizontalPos = 'right';
-                                    }
-                                    
-                                    this.position = `${verticalPos}-${horizontalPos}`;
-                                },
-                                init() {
-                                    // Recalculate position on window resize
-                                    window.addEventListener('resize', () => {
-                                        if (this.open) {
-                                            this.calculatePosition();
-                                        }
-                                    });
-                                    
-                                    // Recalculate position on scroll
-                                    window.addEventListener('scroll', () => {
-                                        if (this.open) {
-                                            this.calculatePosition();
-                                        }
-                                    });
-                                }
-                            }">
+                                }"
+                                @click.outside="open = false"
+                            >
                                 <!-- 3 Dots Button -->
                                 <button 
                                     x-ref="button"
-                                    @click="open = !open; if (open) calculatePosition()"
-                                    @click.away="open = false"
+                                    @click="open = !open; if (open) $nextTick(() => calculatePosition())"
                                     class="inline-flex items-center justify-center w-8 h-8 text-slate-400 hover:text-slate-200 hover:bg-slate-600 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                                 >
                                     <svg class="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -398,7 +388,7 @@
                                         'absolute left-0 mt-2': position === 'bottom-left',
                                         'absolute left-0 mb-2 bottom-full': position === 'top-left'
                                     }"
-                                    class="w-48 bg-slate-800 rounded-lg shadow-xl border border-slate-700 max-h-64 overflow-y-auto action-dropdown"
+                                    class="z-50 w-48 bg-slate-800 rounded-lg shadow-xl border border-slate-700 max-h-64 overflow-y-auto action-dropdown"
                                 >
                                     <div class="py-2">
                                         @foreach($actions as $action)

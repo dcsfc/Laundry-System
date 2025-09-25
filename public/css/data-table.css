@@ -41,31 +41,13 @@
 
 /* Custom scrollbar for dark theme - Only for horizontal scrollbar */
 
-/* Action menu positioning fixes */
-.action-menu-container {
-    position: relative;
-    z-index: 1;
-}
-
-.action-menu-dropdown {
-    position: absolute;
-    z-index: 99999;
-    min-width: 12rem;
-    max-width: 20rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
 /* Ensure action menu doesn't get clipped by table container and only horizontal scrollbar is visible */
 .overflow-x-auto {
     position: relative;
+    overflow-x: auto;
+    overflow-y: visible;
     scrollbar-width: thin;
     scrollbar-color: #6366f1 rgba(15, 23, 42, 0.9);
-}
-
-/* Action menu positioning for left-side menus */
-.action-menu-left {
-    left: -0.5rem !important;
-    transform: translateX(-100%);
 }
 
 /* Force dropdown z-index above everything including sticky headers */
@@ -74,12 +56,6 @@
     position: absolute !important;
     min-width: 12rem;
     max-width: 20rem;
-}
-
-/* Ensure action menu container allows overflow */
-.action-menu-container {
-    position: relative;
-    overflow: visible !important;
 }
 
 /* Table cell containing action button */
