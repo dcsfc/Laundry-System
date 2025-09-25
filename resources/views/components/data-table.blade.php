@@ -121,7 +121,7 @@
                 </div>
             </div>
             <button 
-                @click="addNew()"
+                @click="addNewRecord()"
                 class="group inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold rounded-xl border border-white/20 hover:bg-white/20 hover:border-white/30 hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/25 transform hover:-translate-y-0.5 transition-all duration-300"
             >
                 <svg class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,7 +393,7 @@
                                     <div class="py-2">
                                         @foreach($actions as $action)
                                         <button 
-                                            @click="handleAction(row, '{{ $action['key'] }}'); open = false"
+                                            @click="handleAction('{{ $action['key'] }}', row); open = false"
                                             class="w-full flex items-center px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition-colors duration-200"
                                         >
                                             @if($action['key'] === 'viewUser')
@@ -443,7 +443,7 @@
         <h3 class="text-xl font-bold text-slate-100 mb-3">No data available</h3>
         <p class="text-sm text-slate-400 mb-8 max-w-md mx-auto">{{ $emptyMessage }}</p>
         <button 
-            @click="addNew()"
+            @click="addNewRecord()"
             class="group inline-flex items-center px-6 py-3 bg-gradient-to-r {{ $gradientFrom }} {{ $gradientTo }} text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/25 transform hover:-translate-y-0.5 transition-all duration-300"
         >
             <svg class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,7 +484,7 @@
             </div>
             <div class="flex items-center space-x-2">
                 <button 
-                    @click="previousPage()"
+                    @click="prevPage()"
                     :disabled="currentPage === 1"
                     class="group inline-flex items-center px-4 py-2.5 text-sm font-semibold text-slate-300 bg-slate-800/50 border border-slate-600 rounded-xl hover:bg-slate-700 hover:text-white hover:border-{{ $accentColor }}-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                 >
