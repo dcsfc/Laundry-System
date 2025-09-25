@@ -37,21 +37,18 @@
         return array_merge(['key' => 'id', 'label' => 'Column'], $column);
     })->toArray();
     
-    // Ensure actions have proper structure
+    // Ensure actions have proper structure and unique keys
     $actions = collect($actions)->map(function($action) {
         if (is_string($action)) {
-            return ['key' => $action, 'label' => ucfirst($action)];
+            $key = strtolower(trim($action));
+            return ['key' => $key, 'label' => ucfirst($action)];
         }
-        // Handle actions with onclick property
-        if (isset($action['onclick'])) {
-            return [
-                'key' => $action['onclick'],
-                'label' => $action['label'] ?? ucfirst($action['onclick']),
-                'onclick' => $action['onclick']
-            ];
-        }
-        return array_merge(['key' => 'action', 'label' => 'Action'], $action);
-    })->toArray();
+        $label = $action['label'] ?? ($action['key'] ?? ($action['onclick'] ?? 'Action'));
+        $key = $action['key'] ?? $action['onclick'] ?? strtolower(trim($label));
+        $action['key'] = $key;
+        $action['label'] = $label;
+        return $action;
+    })->unique(function($a){ return strtolower($a['key'] ?? ''); })->values()->toArray();
     
     // Ensure data is properly formatted - more robust approach
     if (is_null($actualData)) {
@@ -105,7 +102,9 @@
 
     <div 
         x-data="dataTable({{ json_encode($actualData) }}, {{ json_encode($columns) }}, {{ json_encode($actions) }}, {{ $pageSize }})"
-    x-init="init()"
+        x-init="init()"
+        data-datatable
+        data-color-scheme="{{ $accentColor }}"
         class="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 backdrop-blur-sm"
     >
     {{-- Premium SaaS Header --}}
@@ -123,7 +122,7 @@
                 </div>
             </div>
             <button 
-                @click="addNew()"
+                @click="addNewRecord()"
                 class="group inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold rounded-xl border border-white/20 hover:bg-white/20 hover:border-white/30 hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/25 transform hover:-translate-y-0.5 transition-all duration-300"
             >
                 <svg class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,7 +316,7 @@
                         @endforeach
                         @if(count($actions) > 0)
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
-                            <div class="relative" x-data="{ 
+                            <div class="relative action-menu-container" x-data="{ 
                                 open: false, 
                                 position: 'bottom-left',
                                 calculatePosition() {
@@ -369,12 +368,11 @@
                                         }
                                     });
                                 }
-                            }">
+                            }" @click.away="open = false">
                                 <!-- 3 Dots Button -->
                                 <button 
                                     x-ref="button"
                                     @click="open = !open; if (open) calculatePosition()"
-                                    @click.away="open = false"
                                     class="inline-flex items-center justify-center w-8 h-8 text-slate-400 hover:text-slate-200 hover:bg-slate-600 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                                 >
                                     <svg class="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -403,25 +401,33 @@
                                     <div class="py-2">
                                         @foreach($actions as $action)
                                         <button 
-                                            @click="handleAction(row, '{{ $action['key'] }}'); open = false"
+                                            @click="dispatchAction('{{ $action['key'] }}', row); open = false"
                                             class="w-full flex items-center px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition-colors duration-200"
                                         >
-                                            @if($action['key'] === 'viewUser')
+                                            @if(in_array($action['key'], ['view']))
                                                 <svg class="w-4 h-4 mr-3 group-hover/action:scale-110 transition-transform text-{{ $accentColor }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
-                                            @elseif($action['key'] === 'editUser')
+                                            @elseif(in_array($action['key'], ['edit']))
                                                 <svg class="w-4 h-4 mr-3 group-hover/action:scale-110 transition-transform text-{{ $accentColor }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                 </svg>
-                                            @elseif($action['key'] === 'toggleUserStatus')
+                                            @elseif(in_array($action['key'], ['toggle status','update status']))
                                                 <svg class="w-4 h-4 mr-3 group-hover/action:scale-110 transition-transform text-{{ $accentColor }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                                                 </svg>
-                                            @elseif($action['key'] === 'deleteUser')
+                                            @elseif(in_array($action['key'], ['delete']))
                                                 <svg class="w-4 h-4 mr-3 group-hover/action:scale-110 transition-transform text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            @elseif(in_array($action['key'], ['print']))
+                                                <svg class="w-4 h-4 mr-3 group-hover/action:scale-110 transition-transform text-{{ $accentColor }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18h12v4H6v-4zM6 14h12a2 2 0 002-2V9H4v3a2 2 0 002 2z" />
+                                                </svg>
+                                            @elseif(in_array($action['key'], ['update stock']))
+                                                <svg class="w-4 h-4 mr-3 group-hover/action:scale-110 transition-transform text-{{ $accentColor }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m0 0l3-3m-3 3l-3-3M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
                                                 </svg>
                                             @else
                                                 <svg class="w-4 h-4 mr-3 group-hover/action:scale-110 transition-transform text-{{ $accentColor }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -453,7 +459,7 @@
         <h3 class="text-xl font-bold text-slate-100 mb-3">No data available</h3>
         <p class="text-sm text-slate-400 mb-8 max-w-md mx-auto">{{ $emptyMessage }}</p>
         <button 
-            @click="addNew()"
+            @click="addNewRecord()"
             class="group inline-flex items-center px-6 py-3 bg-gradient-to-r {{ $gradientFrom }} {{ $gradientTo }} text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/25 transform hover:-translate-y-0.5 transition-all duration-300"
         >
             <svg class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

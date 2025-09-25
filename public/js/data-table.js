@@ -167,6 +167,11 @@ function dataTable(data, columns, actions, pageSize) {
                 this.updatePaginatedData();
             }
         },
+
+        // Alias to match Blade usage if any
+        previousPage() {
+            this.prevPage();
+        },
         
         // Get page numbers for pagination
         getPageNumbers() {
@@ -203,6 +208,30 @@ function dataTable(data, columns, actions, pageSize) {
                     break;
                 default:
                     break;
+            }
+        },
+
+        // Dispatch a DOM event for external listeners (Blade table components)
+        dispatchAction(actionKey, row) {
+            try {
+                // Find the closest container to avoid cross-table leakage
+                let container = null;
+                try {
+                    const activeEl = document.activeElement;
+                    container = activeEl && activeEl.closest ? activeEl.closest('[data-datatable]') : null;
+                } catch (_) {}
+                if (!container) {
+                    container = document.querySelector('[data-datatable]');
+                }
+                const rowId = row && (row.id || row.uuid || row.key || null);
+                if (container) {
+                    container.dispatchEvent(new CustomEvent('datatable:action', {
+                        bubbles: true,
+                        detail: { action: String(actionKey || '').toLowerCase(), rowId, row }
+                    }));
+                }
+            } catch (err) {
+                console.error('Failed dispatching datatable action', err);
             }
         },
         
