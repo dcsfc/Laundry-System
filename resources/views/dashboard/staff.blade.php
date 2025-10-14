@@ -15,16 +15,16 @@
         <!-- KPI Cards Row -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Weekly Revenue Card -->
-            <div class="group bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 rounded-xl p-6 hover:shadow-lg hover:border-emerald-400/40 transition-all duration-300">
+            <div class="group bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 rounded-xl p-6 hover:shadow-lg hover:border-sky-400/40 transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Weekly Revenue</p>
-                        <p class="text-slate-50 text-2xl font-bold">₱{{ number_format($weeklyRevenue ?? 14250) }}</p>
-                        <p class="text-emerald-500 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+15% from last week
+                        <p class="text-slate-50 text-2xl font-bold">₱{{ number_format($weeklyRevenue) }}</p>
+                        <p class="text-sky-500 text-sm font-medium mt-1 flex items-center">
+                            <i class="fas fa-arrow-up mr-1 text-xs"></i>{{ $weeklyGrowth >= 0 ? '+' : '' }}{{ $weeklyGrowth }}% from last week
                         </p>
                     </div>
-                    <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 via-teal-400 to-cyan-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div class="w-10 h-10 bg-gradient-to-br from-sky-500 via-cyan-400 to-sky-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-peso-sign text-white text-lg"></i>
                     </div>
                 </div>
@@ -32,16 +32,16 @@
             </div>
 
             <!-- Pending Laundry Card -->
-            <div class="group bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 rounded-xl p-6 hover:shadow-lg hover:border-amber-400/40 transition-all duration-300">
+            <div class="group bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 rounded-xl p-6 hover:shadow-lg hover:border-cyan-400/40 transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Pending Laundry</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $pendingLaundry ?? 12 }}</p>
-                        <p class="text-amber-500 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-clock mr-1 text-xs"></i>3 due today
+                        <p class="text-slate-50 text-2xl font-bold">{{ $pendingLaundry }}</p>
+                        <p class="text-cyan-500 text-sm font-medium mt-1 flex items-center">
+                            <i class="fas fa-clock mr-1 text-xs"></i>{{ $dueToday }} due today
                         </p>
                     </div>
-                    <div class="w-10 h-10 bg-gradient-to-br from-amber-500 via-orange-400 to-red-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 via-sky-400 to-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-clock text-white text-lg"></i>
                     </div>
                 </div>
@@ -53,12 +53,12 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">Completed Today</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $completedToday ?? 8 }}</p>
-                        <p class="text-emerald-500 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+2 from yesterday
+                        <p class="text-slate-50 text-2xl font-bold">{{ $completedToday }}</p>
+                        <p class="text-sky-500 text-sm font-medium mt-1 flex items-center">
+                            <i class="fas fa-arrow-up mr-1 text-xs"></i>{{ $dailyGrowth >= 0 ? '+' : '' }}{{ $dailyGrowth }}% from yesterday
                         </p>
                     </div>
-                    <div class="w-10 h-10 bg-gradient-to-br from-sky-500 via-cyan-400 to-indigo-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div class="w-10 h-10 bg-gradient-to-br from-sky-500 via-cyan-400 to-sky-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-check-circle text-white text-lg"></i>
                     </div>
                 </div>
@@ -66,16 +66,16 @@
             </div>
 
             <!-- Assigned Schedules Card -->
-            <div class="group bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 rounded-xl p-6 hover:shadow-lg hover:border-indigo-400/40 transition-all duration-300">
+            <div class="group bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 rounded-xl p-6 hover:shadow-lg hover:border-sky-400/40 transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <p class="text-slate-400 text-sm font-medium mb-1">My Schedules</p>
-                        <p class="text-slate-50 text-2xl font-bold">{{ $assignedSchedules ?? 5 }}</p>
-                        <p class="text-indigo-500 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-calendar mr-1 text-xs"></i>2 this afternoon
+                        <p class="text-slate-50 text-2xl font-bold">{{ $assignedSchedules }}</p>
+                        <p class="text-sky-500 text-sm font-medium mt-1 flex items-center">
+                            <i class="fas fa-calendar mr-1 text-xs"></i>{{ $afternoonSchedules }} this afternoon
                         </p>
                     </div>
-                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-400 to-pink-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div class="w-10 h-10 bg-gradient-to-br from-sky-500 via-cyan-400 to-sky-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-calendar-alt text-white text-lg"></i>
                     </div>
                 </div>
@@ -113,7 +113,7 @@
                             <i class="fas fa-download mr-1"></i>Export
                         </button>
                         <div class="flex items-center space-x-2">
-                            <div class="w-3 h-3 bg-emerald-400 rounded-full"></div>
+                            <div class="w-3 h-3 bg-sky-400 rounded-full"></div>
                             <span class="text-sm text-slate-400">Current tasks</span>
                         </div>
                     </div>
@@ -133,33 +133,36 @@
                     </a>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-emerald-500">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Order #1234 - Complete</h4>
-                            <p class="text-slate-400 text-sm">Maria Santos - 5 items, ₱2,250</p>
-                            <p class="text-slate-500 text-xs mt-1">Due: 2:00 PM</p>
+                    @if(count($todaysTasks) > 0)
+                        @foreach($todaysTasks as $task)
+                            @php
+                                $statusColors = [
+                                    'completed' => ['bg' => 'bg-sky-500', 'border' => 'border-sky-500', 'text' => 'text-sky-500'],
+                                    'in progress' => ['bg' => 'bg-cyan-400', 'border' => 'border-cyan-400', 'text' => 'text-cyan-400'],
+                                    'scheduled' => ['bg' => 'bg-sky-400', 'border' => 'border-sky-400', 'text' => 'text-sky-400'],
+                                    'priced' => ['bg' => 'bg-cyan-500', 'border' => 'border-cyan-500', 'text' => 'text-cyan-500']
+                                ];
+                                $statusColor = $statusColors[strtolower($task['status'])] ?? ['bg' => 'bg-slate-500', 'border' => 'border-slate-500', 'text' => 'text-slate-500'];
+                            @endphp
+                            <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 {{ $statusColor['border'] }}">
+                                <div class="w-2 h-2 {{ $statusColor['bg'] }} rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <h4 class="text-slate-50 font-medium">Order #{{ $task['id'] }} - {{ $task['status'] }}</h4>
+                                    <p class="text-slate-400 text-sm">{{ $task['customer_name'] }} - {{ $task['item_count'] }} items, ₱{{ number_format($task['total_price'], 2) }}</p>
+                                    <p class="text-slate-500 text-xs mt-1">Due: {{ $task['pickup_time'] }}</p>
+                                </div>
+                                <span class="px-2 py-1 {{ $statusColor['bg'] }}/20 {{ $statusColor['text'] }} text-xs rounded-full">{{ $task['status'] }}</span>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-check-circle text-slate-400 text-2xl"></i>
+                            </div>
+                            <h4 class="text-slate-300 font-medium mb-2">No tasks assigned</h4>
+                            <p class="text-slate-500 text-sm">You have no orders assigned for today. Great job!</p>
                         </div>
-                        <span class="px-2 py-1 bg-emerald-500/20 text-emerald-500 text-xs rounded-full">Completed</span>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-amber-400">
-                        <div class="w-2 h-2 bg-amber-400 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Order #1235 - In Progress</h4>
-                            <p class="text-slate-400 text-sm">Jose Garcia - 3 items, ₱1,425</p>
-                            <p class="text-slate-500 text-xs mt-1">Due: 4:30 PM</p>
-                        </div>
-                        <span class="px-2 py-1 bg-amber-500/20 text-amber-400 text-xs rounded-full">In Progress</span>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-sky-400">
-                        <div class="w-2 h-2 bg-sky-400 rounded-full mt-2"></div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Order #1236 - Scheduled</h4>
-                            <p class="text-slate-400 text-sm">Ana Dela Cruz - 7 items, ₱3,100</p>
-                            <p class="text-slate-500 text-xs mt-1">Due: 6:00 PM</p>
-                        </div>
-                        <span class="px-2 py-1 bg-sky-500/20 text-sky-400 text-xs rounded-full">Scheduled</span>
-                    </div>
+                    @endif
                 </div>
             </div>
 
@@ -172,36 +175,28 @@
                     </button>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-box text-emerald-500 text-sm"></i>
+                    @if(count($inventoryItems) > 0)
+                        @foreach($inventoryItems as $item)
+                            <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
+                                <div class="w-8 h-8 {{ $item['bg_class'] }} rounded-full flex items-center justify-center">
+                                    <i class="{{ $item['icon_class'] }} text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-slate-50 font-medium">{{ $item['name'] }}</h4>
+                                    <p class="text-slate-400 text-sm">{{ number_format($item['quantity']) }} {{ $item['unit'] }} remaining</p>
+                                    <p class="text-slate-500 text-xs mt-1">{{ $item['status_text'] }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-boxes text-slate-400 text-2xl"></i>
+                            </div>
+                            <h4 class="text-slate-300 font-medium mb-2">No inventory items</h4>
+                            <p class="text-slate-500 text-sm">No inventory items found in the system.</p>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Ariel Powder Detergent</h4>
-                            <p class="text-slate-400 text-sm">15 kilos remaining</p>
-                            <p class="text-slate-500 text-xs mt-1">Good stock level</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-amber-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Downy Fabric Softener</h4>
-                            <p class="text-slate-400 text-sm">3 bottles remaining</p>
-                            <p class="text-slate-500 text-xs mt-1">Low stock - reorder needed</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-sky-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-box text-sky-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Plastic Hangers</h4>
-                            <p class="text-slate-400 text-sm">45 pieces available</p>
-                            <p class="text-slate-500 text-xs mt-1">Adequate supply</p>
-                        </div>
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -220,9 +215,9 @@
                     </div>
                 </button>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-emerald-500 hover:border-emerald-400 transition-all duration-300 hover:scale-105">
-                    <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i class="fas fa-boxes text-emerald-500"></i>
+                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-cyan-500 hover:border-cyan-400 transition-all duration-300 hover:scale-105">
+                    <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-boxes text-cyan-500"></i>
                     </div>
                     <div class="text-left">
                         <h4 class="text-slate-50 font-medium group-hover:text-white">Check Inventory</h4>
@@ -230,9 +225,9 @@
                     </div>
                 </button>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-amber-500 hover:border-amber-400 transition-all duration-300 hover:scale-105">
-                    <div class="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i class="fas fa-calendar-alt text-amber-400"></i>
+                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 hover:scale-105">
+                    <div class="w-10 h-10 bg-sky-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-calendar-alt text-sky-400"></i>
                     </div>
                     <div class="text-left">
                         <h4 class="text-slate-50 font-medium group-hover:text-white">View Schedule</h4>
@@ -240,9 +235,9 @@
                     </div>
                 </button>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-indigo-500 hover:border-indigo-400 transition-all duration-300 hover:scale-105">
-                    <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i class="fas fa-chart-line text-indigo-400"></i>
+                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 hover:scale-105">
+                    <div class="w-10 h-10 bg-sky-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chart-line text-sky-400"></i>
                     </div>
                     <div class="text-left">
                         <h4 class="text-slate-50 font-medium group-hover:text-white">Weekly Report</h4>
@@ -312,7 +307,7 @@
         const performanceOptions = {
             series: [{
                 name: 'Orders Completed',
-                data: [5, 7, 8, 6, 9, 8, 8]
+                data: @json($performanceData['data'])
             }],
             chart: {
                 type: 'line',
@@ -361,7 +356,7 @@
                 }
             },
             xaxis: {
-                categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                categories: @json($performanceData['categories']),
                 axisBorder: {
                     color: '#334155'
                 },
@@ -408,7 +403,7 @@
 
         // Task Distribution Chart with enhanced styling
         const taskDistributionOptions = {
-            series: [8, 12, 3, 2],
+            series: @json($taskDistributionData['series']),
             chart: {
                 type: 'donut',
                 height: 300,
@@ -420,7 +415,7 @@
                 }
             },
             colors: ['#22C55E', '#FBBF24', '#38BDF8', '#EF4444'],
-            labels: ['Completed', 'Pending', 'In Progress', 'Overdue'],
+            labels: @json($taskDistributionData['labels']),
             legend: {
                 position: 'bottom',
                 fontSize: '12px',
@@ -448,7 +443,7 @@
                                 fontWeight: 600,
                                 fontFamily: 'Inter, sans-serif',
                                 formatter: function (w) {
-                                    return '25'
+                                    return '{{ $taskDistributionData["total"] }}'
                                 }
                             }
                         }
@@ -487,36 +482,36 @@
             const revenueSparkline = new ApexCharts(document.querySelector("#revenueSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [12500, 13000, 13500, 14000, 14250]
+                    data: @json($sparklineData['revenue'])
                 }],
-                colors: ['#22C55E']
+                colors: ['#0EA5E9'] // Sky-500
             });
             revenueSparkline.render();
 
             const pendingSparkline = new ApexCharts(document.querySelector("#pendingSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [15, 14, 13, 12, 12]
+                    data: @json($sparklineData['pending'])
                 }],
-                colors: ['#FBBF24']
+                colors: ['#06B6D4'] // Cyan-500
             });
             pendingSparkline.render();
 
             const completedSparkline = new ApexCharts(document.querySelector("#completedSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [6, 7, 8, 8, 8]
+                    data: @json($sparklineData['completed'])
                 }],
-                colors: ['#38BDF8']
+                colors: ['#0EA5E9'] // Sky-500
             });
             completedSparkline.render();
 
             const schedulesSparkline = new ApexCharts(document.querySelector("#schedulesSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [3, 4, 5, 5, 5]
+                    data: @json($sparklineData['schedules'])
                 }],
-                colors: ['#8B5CF6']
+                colors: ['#0EA5E9'] // Sky-500
             });
             schedulesSparkline.render();
 

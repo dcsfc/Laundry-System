@@ -12,20 +12,32 @@ class Order extends Model
     protected $fillable = [
         'customer_id',
         'staff_id',
+        'service_id',
         'dropoff_date',
+        'dropoff_time',
         'pickup_date',
+        'pickup_time',
         'total_price',
         'payment_status',
         'payment_method',
         'status',
         'notes',
-        'created_by'
+        'created_by',
+        'approval_status',
+        'approved_by',
+        'approved_at',
+        'rejection_reason',
+        'weight'
     ];
 
     protected $casts = [
         'dropoff_date' => 'date',
         'pickup_date' => 'date',
-        'total_price' => 'decimal:2'
+        'dropoff_time' => 'datetime:H:i',
+        'pickup_time' => 'datetime:H:i',
+        'total_price' => 'decimal:2',
+        'approved_at' => 'datetime',
+        'weight' => 'decimal:2'
     ];
 
     public function customer()
@@ -43,8 +55,18 @@ class Order extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
     }
 }

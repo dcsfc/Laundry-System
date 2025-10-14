@@ -16,11 +16,29 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!Auth::check()) {
+        // Check if user is authenticated with any guard
+        $user = null;
+        $guard = null;
+        
+        if (Auth::guard('admin')->check()) {
+            $user = Auth::guard('admin')->user();
+            $guard = 'admin';
+        } elseif (Auth::guard('customer')->check()) {
+            $user = Auth::guard('customer')->user();
+            $guard = 'customer';
+        } elseif (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
+            $guard = 'web';
+        }
+
+        if (!$user) {
+            // Redirect to appropriate login based on the role being checked
+            if (in_array($role, ['superadmin', 'admin', 'administrator', 'staff'])) {
+                return redirect()->route('admin.login');
+            }
             return redirect()->route('login');
         }
 
-        $user = Auth::user();
         $userRole = $user->role->name ?? 'customer';
 
         // Map role names to expected values
@@ -48,6 +66,15 @@ class CheckRole
                 default:
                     return redirect()->route('customer.dashboard');
             }
+        }
+
+        // Ensure admin users are using the admin guard and customers are using customer guard
+        if ($userRole === 'customer' && $guard !== 'customer') {
+            return redirect()->route('login');
+        }
+        
+        if (in_array($userRole, ['superadmin', 'administrator', 'staff']) && $guard !== 'admin') {
+            return redirect()->route('admin.login');
         }
 
         return $next($request);

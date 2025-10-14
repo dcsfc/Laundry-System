@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
@@ -56,19 +57,20 @@ class UserController extends Controller
             ['key' => 'name', 'label' => 'Name', 'sortable' => true],
             ['key' => 'email', 'label' => 'Email', 'sortable' => true],
             ['key' => 'phone_number', 'label' => 'Phone', 'sortable' => true],
-            ['key' => 'role', 'label' => 'Role', 'sortable' => true],
-            ['key' => 'status', 'label' => 'Status', 'sortable' => true],
-            ['key' => 'created_at', 'label' => 'Created', 'sortable' => true],
+            ['key' => 'role_name', 'label' => 'Role', 'sortable' => true],
+            ['key' => 'status', 'label' => 'Status', 'sortable' => true, 'type' => 'status'],
+            ['key' => 'created_at', 'label' => 'Created', 'sortable' => true, 'type' => 'date'],
             ['key' => 'created_by_name', 'label' => 'Created By', 'sortable' => true],
             ['key' => 'account_age', 'label' => 'Account Age', 'sortable' => true]
         ];
 
         // Define actions for the data table
         $actions = [
-            ['key' => 'viewUser', 'label' => 'View', 'onclick' => 'viewUser'],
-            ['key' => 'editUser', 'label' => 'Edit', 'onclick' => 'editUser'],
-            ['key' => 'toggleUserStatus', 'label' => 'Toggle Status', 'onclick' => 'toggleUserStatus'],
-            ['key' => 'deleteUser', 'label' => 'Delete', 'onclick' => 'deleteUser']
+            ['key' => 'viewUser', 'label' => 'View', 'icon' => 'view'],
+            ['key' => 'editUser', 'label' => 'Edit', 'icon' => 'edit'],
+            ['key' => 'toggleUserStatus', 'label' => 'Toggle Status', 'icon' => 'toggle'],
+            ['key' => 'resetUserPassword', 'label' => 'Reset Password', 'icon' => 'key'],
+            ['key' => 'deleteUser', 'label' => 'Delete', 'icon' => 'delete']
         ];
         
         $users = $users->map(function ($user) {
@@ -80,12 +82,15 @@ class UserController extends Controller
                 $creatorName = $creator ? $creator->name : 'Unknown User';
             }
             
+            $roleName = $user->role ? ucfirst($user->role->name) : 'No Role';
+            
             return [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone_number' => $user->phone_number ?? 'N/A',
-                'role' => $user->role ? ucfirst($user->role->name) : 'No Role',
+                'role' => $roleName,
+                'role_name' => $roleName, // For compatibility
                 'status' => ucfirst($user->status ?? 'Active'),
                 'created_at' => $user->created_at ? $user->created_at->format('M d, Y') : 'N/A',
                 'created_by' => $user->created_by,
@@ -94,7 +99,10 @@ class UserController extends Controller
             ];
         })->toArray();
         
-        return view('superadmin.users.index', compact('roles', 'columns', 'actions') + ['data' => $users]);
+        // Debug: Log the data being passed to the view
+        \Log::info('Users data being passed to view:', $users);
+        
+        return view('superadmin.users.index', compact('users', 'roles', 'columns', 'actions'));
     }
 
     public function fetchUsers(Request $request)
@@ -379,27 +387,206 @@ class UserController extends Controller
             // Debug: Log all incoming data
             \Log::info('storeAjax called with data:', $request->all());
             
-            $request->validate([
-                'name' => 'required|string|max:100',
-                'email' => 'required|email|unique:users',
-                'role_id' => 'required|exists:roles,id',
-                'password' => 'required|min:8',
-                'status' => 'in:active,inactive'
-            ]);
+            $isUpdate = $request->get('operation') === 'update';
+            $userId = $request->get('id');
             
-            $userData = [
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => bcrypt($request->password),
-                'phone_number' => $request->phone_number,
-                'role_id' => $request->role_id,
-                'status' => $request->status ?? 'active',
-                'created_by' => auth()->id()
-            ];
+            // Different validation rules for create vs update
+            if ($isUpdate) {
+                $request->validate([
+                    'name' => 'required|string|max:100',
+                    'email' => 'required|email|unique:users,email,' . $userId,
+                    'role_id' => 'required|exists:roles,id',
+                    'password' => 'nullable|min:8', // Password is optional for updates
+                    'status' => 'in:active,inactive'
+                ]);
+            } else {
+                $request->validate([
+                    'name' => 'required|string|max:100',
+                    'email' => 'required|email|unique:users',
+                    'role_id' => 'required|exists:roles,id',
+                    'password' => 'required|min:8',
+                    'status' => 'in:active,inactive'
+                ]);
+            }
             
-            \Log::info('User data before creation:', $userData);
-            
-            $user = User::create($userData);
+            if ($isUpdate) {
+                // Update existing user
+                $user = User::findOrFail($userId);
+                
+                $userData = [
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone_number' => $request->phone_number,
+                    'role_id' => $request->role_id,
+                    'status' => $request->status ?? 'active'
+                ];
+                
+                // Only update password if provided
+                if ($request->password) {
+                    $userData['password'] = bcrypt($request->password);
+                }
+                
+                \Log::info('User data before update:', $userData);
+                
+                // Get old values for comparison BEFORE updating
+                $oldRole = $user->role->name ?? 'Unknown';
+                $oldStatus = $user->status;
+                $oldName = $user->name;
+                $oldEmail = $user->email;
+                $oldPhone = $user->phone_number;
+                
+                \Log::info('Old values before update:', [
+                    'old_name' => $oldName,
+                    'old_email' => $oldEmail,
+                    'old_phone' => $oldPhone,
+                    'old_role' => $oldRole,
+                    'old_status' => $oldStatus,
+                    'new_data' => $userData
+                ]);
+                
+                $user->update($userData);
+                
+                // Refresh the user model to get updated relationships
+                $user->refresh();
+                $user->load('role');
+                
+                // Get the new values
+                $newRole = $user->role->name ?? 'Unknown';
+                $newStatus = $user->status;
+                $newName = $user->name;
+                $newEmail = $user->email;
+                $newPhone = $user->phone_number;
+                
+                \Log::info('After update values:', [
+                    'old_name' => $oldName, 'new_name' => $newName,
+                    'old_email' => $oldEmail, 'new_email' => $newEmail,
+                    'old_phone' => $oldPhone, 'new_phone' => $newPhone,
+                    'old_role' => $oldRole, 'new_role' => $newRole,
+                    'old_status' => $oldStatus, 'new_status' => $newStatus
+                ]);
+                
+                // Log user update with organized change detection
+                $changes = [];
+                
+                // Check name changes
+                if ($oldName !== $newName) {
+                    $changes[] = "• Name: <span class='text-slate-400'>'{$oldName}'</span> → <span class='text-green-400 font-semibold'>'{$newName}'</span>";
+                }
+                
+                // Check email changes
+                if ($oldEmail !== $newEmail) {
+                    $changes[] = "• Email: <span class='text-slate-400'>'{$oldEmail}'</span> → <span class='text-green-400 font-semibold'>'{$newEmail}'</span>";
+                }
+                
+                // Check phone changes
+                if ($oldPhone !== $newPhone) {
+                    $changes[] = "• Phone: <span class='text-slate-400'>'{$oldPhone}'</span> → <span class='text-green-400 font-semibold'>'{$newPhone}'</span>";
+                }
+                
+                // Check role changes
+                if ($oldRole !== $newRole) {
+                    $changes[] = "• Role: <span class='text-slate-400'>'{$oldRole}'</span> → <span class='text-green-400 font-semibold'>'{$newRole}'</span>";
+                }
+                
+                // Check status changes
+                if ($oldStatus !== $newStatus) {
+                    $changes[] = "• Status: <span class='text-slate-400'>'{$oldStatus}'</span> → <span class='text-green-400 font-semibold'>'{$newStatus}'</span>";
+                }
+                
+                // Check if password was changed
+                if (isset($userData['password'])) {
+                    $changes[] = "• Password: <span class='text-green-400 font-semibold'>[Changed]</span>";
+                }
+                
+                // Debug: Log what changes were detected
+                \Log::info('Changes detected:', [
+                    'changes_count' => count($changes),
+                    'changes' => $changes,
+                    'old_values' => [
+                        'name' => $oldName,
+                        'email' => $oldEmail,
+                        'phone' => $oldPhone,
+                        'role' => $oldRole,
+                        'status' => $oldStatus
+                    ],
+                    'new_values' => [
+                        'name' => $newName,
+                        'email' => $newEmail,
+                        'phone' => $newPhone,
+                        'role' => $newRole,
+                        'status' => $newStatus
+                    ]
+                ]);
+                
+                $changeDescription = !empty($changes) ? "\n" . implode("\n", $changes) : 'profile information';
+                
+                AuditLog::log(
+                    'USER_UPDATED',
+                    "Updated user '{$user->name}' — changed {$changeDescription}",
+                    auth()->id(),
+                    [
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                        'user_email' => $user->email,
+                        'old_name' => $oldName,
+                        'new_name' => $newName,
+                        'old_email' => $oldEmail,
+                        'new_email' => $newEmail,
+                        'old_phone' => $oldPhone,
+                        'new_phone' => $newPhone,
+                        'old_role' => $oldRole,
+                        'new_role' => $newRole,
+                        'old_status' => $oldStatus,
+                        'new_status' => $newStatus,
+                        'password_changed' => isset($userData['password']),
+                        'changes' => $userData
+                    ]
+                );
+                
+                $message = 'User updated successfully';
+            } else {
+                // Create new user
+                $userData = [
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'phone_number' => $request->phone_number,
+                    'role_id' => $request->role_id,
+                    'status' => $request->status ?? 'active',
+                    'created_by' => auth()->id()
+                ];
+                
+                \Log::info('User data before creation:', $userData);
+                
+                $user = User::create($userData);
+                
+                // Log user creation with organized format
+                $userDetails = [
+                    "• Email: <span class='text-green-400 font-semibold'>'{$user->email}'</span>",
+                    "• Phone: <span class='text-green-400 font-semibold'>'{$user->phone_number}'</span>",
+                    "• Role: <span class='text-green-400 font-semibold'>'{$user->role->name}'</span>",
+                    "• Status: <span class='text-green-400 font-semibold'>'{$user->status}'</span>"
+                ];
+                
+                $userDetailsString = "\n" . implode("\n", $userDetails);
+                
+                AuditLog::log(
+                    'USER_CREATED',
+                    "Created new user '{$user->name}'{$userDetailsString}",
+                    auth()->id(),
+                    [
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                        'user_email' => $user->email,
+                        'role_id' => $user->role_id,
+                        'role_name' => $user->role->name ?? 'Unknown',
+                        'status' => $user->status,
+                        'phone_number' => $user->phone_number
+                    ]
+                );
+                
+                $message = 'User created successfully';
+            }
             
             // Get creator's name - use current authenticated user's name
             $currentUser = auth()->user();
@@ -415,7 +602,7 @@ class UserController extends Controller
             
             return response()->json([
                 'success' => true,
-                'message' => 'User created successfully',
+                'message' => $message,
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -466,24 +653,183 @@ class UserController extends Controller
         return redirect()->route('superadmin.users.index');
     }
 
+    public function updateAjax(Request $request, User $user)
+    {
+        try {
+            // Debug: Log all incoming data
+            \Log::info('updateAjax called with data:', $request->all());
+            
+            $validationRules = [
+                'name' => 'required|string|max:100',
+                'email' => 'required|email|unique:users,email,' . $user->id,
+                'role_id' => 'required|exists:roles,id',
+                'status' => 'in:active,inactive'
+            ];
+
+            // Only validate password if it's provided
+            if ($request->filled('password')) {
+                $validationRules['password'] = 'min:8';
+            }
+
+            $request->validate($validationRules);
+            
+            $userData = [
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone_number' => $request->phone_number,
+                'role_id' => $request->role_id,
+                'status' => $request->status ?? 'active'
+            ];
+
+            // Only update password if provided
+            if ($request->filled('password')) {
+                $userData['password'] = bcrypt($request->password);
+            }
+            
+            \Log::info('User data before update:', $userData);
+            
+            $user->update($userData);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'User updated successfully',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone_number' => $user->phone_number,
+                    'status' => $user->status,
+                    'role_id' => $user->role_id,
+                    'updated_at' => $user->updated_at->format('M d, Y')
+                ]
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error updating user:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update user: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function destroy(User $user)
     {
         $user->delete();
         return redirect()->route('superadmin.users.index');
     }
 
+    public function deleteUserAjax(Request $request)
+    {
+        \Log::info('deleteUserAjax method called', ['request_data' => $request->all()]);
+        
+        try {
+            $userId = $request->get('user_id');
+            \Log::info('User ID from request', ['user_id' => $userId]);
+            $user = User::find($userId);
+            
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            }
+
+            // Check if user is trying to delete themselves
+            if ($user->id === auth()->id()) {
+                return response()->json(['success' => false, 'message' => 'You cannot delete your own account'], 400);
+            }
+
+            // Check if user is the last superadmin
+            if ($user->role->name === 'superadmin') {
+                $superadminCount = User::whereHas('role', function($query) {
+                    $query->where('name', 'superadmin');
+                })->count();
+                
+                if ($superadminCount <= 1) {
+                    return response()->json(['success' => false, 'message' => 'Cannot delete the last superadmin account'], 400);
+                }
+            }
+
+            $userName = $user->name;
+            $userEmail = $user->email;
+            $userRole = $user->role->name ?? 'Unknown';
+            
+            // Log user deletion with organized format
+            $deletedUserDetails = [
+                "• Email: <span class='text-slate-400'>'{$userEmail}'</span>",
+                "• Role: <span class='text-slate-400'>'{$userRole}'</span>",
+                "• Status: <span class='text-slate-400'>'{$user->status}'</span>"
+            ];
+            
+            $deletedUserDetailsString = "\n" . implode("\n", $deletedUserDetails);
+            
+            AuditLog::log(
+                'USER_DELETED',
+                "Deleted user '{$userName}'{$deletedUserDetailsString}",
+                auth()->id(),
+                [
+                    'deleted_user_id' => $user->id,
+                    'deleted_user_name' => $userName,
+                    'deleted_user_email' => $userEmail,
+                    'deleted_user_role' => $userRole,
+                    'deletion_reason' => 'Admin deletion',
+                    'deleted_at' => now()->toDateTimeString()
+                ]
+            );
+            
+            $user->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'User deleted successfully',
+                'deleted_user' => $userName
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error deleting user:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete user: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function toggleUserStatus(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'status' => 'required|in:active,inactive'
+            'user_id' => 'required|exists:users,id'
         ]);
 
         try {
             $user = User::findOrFail($request->user_id);
-            $user->update(['status' => $request->status]);
+            $oldStatus = $user->status;
+            $newStatus = $user->status === 'active' ? 'inactive' : 'active';
+            $user->update(['status' => $newStatus]);
             
-            return response()->json(['success' => true]);
+            // Log status change
+            AuditLog::log(
+                'USER_STATUS_CHANGED',
+                "Changed user '{$user->name}' status from '{$oldStatus}' to '{$newStatus}' — account access " . ($newStatus === 'active' ? 'enabled' : 'disabled'),
+                auth()->id(),
+                [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'user_email' => $user->email,
+                    'old_status' => $oldStatus,
+                    'new_status' => $newStatus,
+                    'action_type' => $newStatus === 'active' ? 'account_enabled' : 'account_disabled'
+                ]
+            );
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'User status updated successfully',
+                'new_status' => $newStatus
+            ]);
         } catch (\Exception $e) {
             \Log::error('Error toggling user status:', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
@@ -719,6 +1065,27 @@ class UserController extends Controller
         $description = 'Manage staff and customer accounts, view their activity, and handle user support';
 
         return view('admin.users.index', compact('columns', 'actions', 'description', 'roles') + ['data' => $users]);
+    }
+
+    /**
+     * Log user login activity
+     */
+    public function logUserLogin($userId)
+    {
+        $user = User::find($userId);
+        if ($user) {
+            AuditLog::log(
+                'USER_LOGIN',
+                "User '{$user->name}' logged in successfully",
+                $userId,
+                [
+                    'user_id' => $userId,
+                    'user_name' => $user->name,
+                    'user_email' => $user->email,
+                    'login_time' => now()->toDateTimeString()
+                ]
+            );
+        }
     }
 
 }

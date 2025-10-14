@@ -1,116 +1,188 @@
 <?php
+
 namespace App\Http\Controllers\SuperAdmin;
+
 use App\Models\Announcement;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-class AnnouncementController extends Controller {
-    public function index() {
-        // Sample announcements data for the reusable data table component
-        $announcements = collect([
-            [
-                'id' => 1,
-                'title' => 'Holiday Schedule Update',
-                'message' => 'We will be closed on January 1st for New Year\'s Day. Regular hours resume on January 2nd.',
-                'status' => 'Active',
-                'priority' => 'High',
-                'created_by' => 'Admin User',
-                'created_at' => '2024-01-15 10:30:00',
-                'expires_at' => '2024-01-31 23:59:59'
-            ],
-            [
-                'id' => 2,
-                'title' => 'New Service Available',
-                'message' => 'We now offer eco-friendly dry cleaning services. Ask about our green cleaning options!',
-                'status' => 'Active',
-                'priority' => 'Medium',
-                'created_by' => 'Staff Member',
-                'created_at' => '2024-01-14 14:20:00',
-                'expires_at' => '2024-02-14 23:59:59'
-            ],
-            [
-                'id' => 3,
-                'title' => 'System Maintenance',
-                'message' => 'Scheduled maintenance on Sunday, January 21st from 2:00 AM to 4:00 AM. Online services may be temporarily unavailable.',
-                'status' => 'Active',
-                'priority' => 'High',
-                'created_by' => 'Admin User',
-                'created_at' => '2024-01-13 09:15:00',
-                'expires_at' => '2024-01-22 23:59:59'
-            ],
-            [
-                'id' => 4,
-                'title' => 'Customer Appreciation Week',
-                'message' => 'Thank you for your continued support! Enjoy 20% off all services this week.',
-                'status' => 'Inactive',
-                'priority' => 'Low',
-                'created_by' => 'Staff Member',
-                'created_at' => '2024-01-12 16:45:00',
-                'expires_at' => '2024-01-19 23:59:59'
-            ]
-        ]);
+use Illuminate\Support\Facades\Validator;
 
-        // Define columns for the data table
-        $columns = [
-            ['key' => 'id', 'label' => 'ID', 'sortable' => true],
-            ['key' => 'title', 'label' => 'Title', 'sortable' => true],
-            ['key' => 'message', 'label' => 'Message', 'sortable' => true],
-            ['key' => 'status', 'label' => 'Status', 'sortable' => true],
-            ['key' => 'priority', 'label' => 'Priority', 'sortable' => true],
-            ['key' => 'created_by', 'label' => 'Created By', 'sortable' => true],
-            ['key' => 'created_at', 'label' => 'Created At', 'sortable' => true],
-            ['key' => 'expires_at', 'label' => 'Expires At', 'sortable' => true]
-        ];
+class AnnouncementController extends Controller
+{
+    public function index()
+    {
+        $announcements = Announcement::with('createdBy')
+            ->orderBy('is_pinned', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        // Define actions for the data table
-        $actions = [
-            ['label' => 'View', 'onclick' => 'viewAnnouncement'],
-            ['label' => 'Edit', 'onclick' => 'editAnnouncement'],
-            ['label' => 'Toggle Status', 'onclick' => 'toggleAnnouncementStatus'],
-            ['label' => 'Delete', 'onclick' => 'deleteAnnouncement']
-        ];
-
-        return view('superadmin.announcements.index', compact('announcements', 'columns', 'actions'));
+        return view('superadmin.announcements.index', compact('announcements'));
     }
-    public function create() {
+
+    public function create()
+    {
         return view('superadmin.announcements.create');
     }
-    public function store(Request $request) {
-        $request->validate([
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            // Accept either 'message' or legacy 'body'
-            'message' => 'nullable|string',
-            'body' => 'nullable|string',
+            'message' => 'required|string',
+            'type' => 'required|in:new,improvement,fix,maintenance,alert',
+            'link' => 'nullable|url',
+            'visible_to' => 'required|in:all,admin,staff,customer',
+            'expires_at' => 'nullable|date|after_or_equal:today',
+            'is_pinned' => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
-        $payload = [
-            'title' => $request->title,
-            'message' => $request->message ?? $request->body,
-            'created_by' => auth()->id() ?? 1,
-        ];
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        Announcement::create($payload);
-        return redirect()->route('superadmin.announcements.index');
+        try {
+            $announcement = Announcement::create([
+                'title' => $request->title,
+                'message' => $request->message,
+                'type' => $request->type,
+                'link' => $request->link,
+                'visible_to' => $request->visible_to,
+                'expires_at' => $request->expires_at,
+                'is_pinned' => $request->boolean('is_pinned'),
+                'is_active' => $request->boolean('is_active', true),
+                'created_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Announcement created successfully',
+                'announcement' => $announcement->load('createdBy')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create announcement: ' . $e->getMessage()
+            ], 500);
+        }
     }
-    public function edit(Announcement $announcement) {
-        return view('superadmin.announcements.edit', compact('announcement'));
+
+    public function show(Announcement $announcement)
+    {
+        return response()->json([
+            'success' => true,
+            'announcement' => $announcement->load('createdBy')
+        ]);
     }
-    public function update(Request $request, Announcement $announcement) {
-        $request->validate([
+
+    public function edit(Announcement $announcement)
+    {
+        return response()->json([
+            'success' => true,
+            'announcement' => $announcement
+        ]);
+    }
+
+    public function update(Request $request, Announcement $announcement)
+    {
+        $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'message' => 'nullable|string',
-            'body' => 'nullable|string',
+            'message' => 'required|string',
+            'type' => 'required|in:new,improvement,fix,maintenance,alert',
+            'link' => 'nullable|url',
+            'visible_to' => 'required|in:all,admin,staff,customer',
+            'expires_at' => 'nullable|date|after_or_equal:today',
+            'is_pinned' => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
-        $payload = [
-            'title' => $request->title,
-            'message' => $request->message ?? $request->body,
-        ];
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        $announcement->update($payload);
-        return redirect()->route('superadmin.announcements.index');
+        try {
+            $announcement->update([
+                'title' => $request->title,
+                'message' => $request->message,
+                'type' => $request->type,
+                'link' => $request->link,
+                'visible_to' => $request->visible_to,
+                'expires_at' => $request->expires_at,
+                'is_pinned' => $request->boolean('is_pinned'),
+                'is_active' => $request->boolean('is_active', true),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Announcement updated successfully',
+                'announcement' => $announcement->load('createdBy')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update announcement: ' . $e->getMessage()
+            ], 500);
+        }
     }
-    public function destroy(Announcement $announcement) {
-        $announcement->delete();
-        return redirect()->route('superadmin.announcements.index');
+
+    public function destroy(Announcement $announcement)
+    {
+        try {
+            $announcement->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Announcement deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete announcement: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function toggleStatus(Announcement $announcement)
+    {
+        try {
+            $announcement->update(['is_active' => !$announcement->is_active]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Announcement status updated successfully',
+                'is_active' => $announcement->is_active
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update announcement status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function togglePin(Announcement $announcement)
+    {
+        try {
+            $announcement->update(['is_pinned' => !$announcement->is_pinned]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Announcement pin status updated successfully',
+                'is_pinned' => $announcement->is_pinned
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update announcement pin status: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

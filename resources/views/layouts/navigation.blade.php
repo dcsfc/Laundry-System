@@ -39,7 +39,23 @@
                         </x-dropdown-link>
 
                         <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                        @php
+                            $user = null;
+                            $logoutRoute = 'logout';
+                            
+                            if (Auth::guard('admin')->check()) {
+                                $user = Auth::guard('admin')->user();
+                                $logoutRoute = 'admin.logout';
+                            } elseif (Auth::guard('customer')->check()) {
+                                $user = Auth::guard('customer')->user();
+                                $logoutRoute = 'logout';
+                            } elseif (Auth::guard('web')->check()) {
+                                $user = Auth::guard('web')->user();
+                                $logoutRoute = 'logout';
+                            }
+                        @endphp
+                        
+                        <form method="POST" action="{{ route($logoutRoute) }}" class="inline">
                             @csrf
                             <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
                                 {{ __('Log Out') }}

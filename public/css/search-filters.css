@@ -1,0 +1,90 @@
+/* Professional Search and Filter Styles */
+
+/* Search input focus expansion - more controlled */
+.group.search-focused {
+    max-width: 400px; /* Limit maximum expansion */
+    transition: all 0.3s ease-in-out;
+}
+
+.group.search-focused input {
+    transform: scale(1.01); /* Reduced scaling */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Search input focus animation - subtle */
+.group input:focus {
+    transform: scale(1.01); /* Reduced scaling */
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Clear search button animation */
+.group button {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease-in-out;
+}
+
+.group button[x-show] {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.group button:hover {
+    transform: scale(1.1);
+}
+
+/* Active filter indicators */
+.group .absolute.-top-1.-right-1 {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Smooth transitions for all interactive elements */
+.group select,
+.group input,
+.group button {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Enhanced hover effects */
+.group:hover select,
+.group:hover input {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Focus ring improvements */
+.group input:focus,
+.group select:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Loading state for search */
+.group input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .group input {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .group button span {
+        display: none;
+    }
+    
+    .group button {
+        padding: 0.5rem;
+    }
+}

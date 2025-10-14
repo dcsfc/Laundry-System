@@ -1,0 +1,207 @@
+/* Custom Scrollbar Styling */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #10b981 #0f172a;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: #0f172a;
+    border-radius: 5px;
+    margin: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #10b981, #14b8a6);
+    border-radius: 5px;
+    border: 1px solid #0f172a;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #059669, #0d9488);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.4);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #047857, #0f766e);
+}
+
+/* Override Tailwind scrollbar classes to match theme */
+.scrollbar-thumb-slate-600::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #10b981, #14b8a6) !important;
+    border: 1px solid #0f172a !important;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3) !important;
+}
+
+.scrollbar-thumb-slate-600::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #059669, #0d9488) !important;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.4) !important;
+}
+
+.scrollbar-track-slate-800::-webkit-scrollbar-track {
+    background: #0f172a !important;
+    border-radius: 5px !important;
+    margin: 2px !important;
+}
+
+/* Textarea scrollbar styling for cancel modal */
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+    background: #0f172a;
+    border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #10b981, #14b8a6);
+    border-radius: 4px;
+    border: 1px solid #0f172a;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #059669, #0d9488);
+}
+
+/* Firefox textarea scrollbar */
+textarea {
+    scrollbar-width: thin;
+    scrollbar-color: #10b981 #0f172a;
+}
+
+/* Toast Notification Styles */
+.toast {
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast.hide {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.toast-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+    border: 1px solid rgba(4, 120, 87, 0.3);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+}
+
+.toast-error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95));
+    border: 1px solid rgba(185, 28, 28, 0.3);
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2);
+}
+
+.toast-warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+    border: 1px solid rgba(180, 83, 9, 0.3);
+    box-shadow: 0 10px 25px rgba(245, 158, 11, 0.2);
+}
+
+.toast-info {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+    border: 1px solid rgba(29, 78, 216, 0.3);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+}
+
+/* Status Timeline Styles */
+.status-item {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.status-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 1.5rem;
+    bottom: -0.75rem;
+    width: 2px;
+    background: #374151;
+}
+
+.status-item.completed:not(:last-child)::before {
+    background: linear-gradient(to bottom, #10b981, #374151);
+}
+
+.status-icon {
+    position: absolute;
+    left: 0;
+    top: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+}
+
+.status-icon.completed {
+    background: #10b981;
+    color: white;
+}
+
+.status-icon.current {
+    background: #3b82f6;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.status-icon.pending {
+    background: #6b7280;
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Table horizontal scrollbar styling */
+.overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #10b981 #0f172a;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+    height: 12px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #0f172a;
+    border-radius: 6px;
+    margin: 0 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #10b981, #14b8a6);
+    border-radius: 6px;
+    border: 2px solid #0f172a;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, #059669, #0d9488);
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(90deg, #047857, #0f766e);
+}
+
+/* Add subtle shadow to scrollbar */
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}

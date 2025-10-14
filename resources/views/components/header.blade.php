@@ -32,21 +32,15 @@
             <i class="fas fa-bars group-hover:scale-110 transition-transform text-sm"></i>
         </button>
         
-        <span class="font-semibold text-lg tracking-tight text-slate-50">Latino Laundry</span>
+        <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Latino Laundry" class="h-20 w-auto">
     </div>
 
-    <!-- Middle: Search -->
-    <div class="hidden md:flex items-center relative w-80">
-        <input type="text" placeholder="Search anything... (Ctrl+K)"
-            class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-sm text-slate-50 placeholder-slate-500 focus:outline-none focus:border-{{ $textColor }}-400 focus:ring-2 focus:ring-{{ $textColor }}-400/20 transition-all">
-        <i class="fas fa-search absolute right-3 text-slate-500 text-xs"></i>
-    </div>
 
     <!-- Right: Actions -->
     <div class="flex items-center gap-3">
         <!-- Dark Mode Toggle -->
         <button id="theme-toggle" class="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-{{ $textColor }}-400 hover:bg-slate-700 transition-all group">
-            <i class="fa fa-moon group-hover:scale-110 transition-transform text-sm"></i>
+            <i id="theme-icon" class="fa fa-moon group-hover:scale-110 transition-transform text-sm"></i>
         </button>
 
         <!-- Help -->
@@ -98,9 +92,44 @@
 
 <!-- Dark Mode & Sidebar Toggle Script -->
 <script>
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-    });
+    // Dark Mode Toggle Functionality
+    function initTheme() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or default to 'dark'
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const currentTheme = savedTheme === 'auto' ? (prefersDark ? 'dark' : 'light') : savedTheme;
+        
+        // Apply theme
+        if (currentTheme === 'dark') {
+            html.classList.add('dark');
+            themeIcon.className = 'fa fa-sun group-hover:scale-110 transition-transform text-sm';
+        } else {
+            html.classList.remove('dark');
+            themeIcon.className = 'fa fa-moon group-hover:scale-110 transition-transform text-sm';
+        }
+        
+        // Toggle theme on click
+        themeToggle.addEventListener('click', () => {
+            const isDark = html.classList.contains('dark');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                themeIcon.className = 'fa fa-moon group-hover:scale-110 transition-transform text-sm';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = 'fa fa-sun group-hover:scale-110 transition-transform text-sm';
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    }
+
+    // Initialize theme on page load
+    document.addEventListener('DOMContentLoaded', initTheme);
 
     // Sidebar Toggle Functionality
     document.getElementById('sidebar-toggle').addEventListener('click', () => {

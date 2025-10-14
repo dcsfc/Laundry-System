@@ -3,223 +3,425 @@
 @section('title', 'My Schedules')
 
 @section('content')
-    <div class="container">
-        <!-- Page Header -->
-        <div class="mb-6">
-            <div class="flex items-center justify-between">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Page Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-slate-50 mb-2">My Schedules</h1>
-                    <p class="text-slate-400">Manage your laundry drop-off and pickup appointments.</p>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-3">My Schedules</h1>
+                <p class="text-slate-400 text-lg">Manage your laundry pickup and delivery appointments</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('customer.schedules.create') }}" 
-                       class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                        <i class="fas fa-plus mr-2"></i>Schedule Laundry
-                    </a>
-                    <button class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg font-medium transition-colors">
-                        <i class="fas fa-calendar-alt mr-2"></i>Calendar View
+                    <button onclick="openScheduleModal()" 
+                        class="inline-flex items-center bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-3 rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-emerald-500/25">
+                    <i class="fas fa-plus mr-2"></i>
+                    New Schedule
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Filters and Search -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <!-- Search -->
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Search Schedules</label>
-                    <div class="relative">
-                        <input type="text" 
-                               class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 pl-10 text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
-                               placeholder="Search by service type, status...">
-                        <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+    <!-- Summary Stats -->
+    @if($allSchedules->count() > 0)
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Pending Orders -->
+            <div class="group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-amber-500/50 transition-all hover:shadow-lg hover:shadow-amber-500/10">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-clock text-amber-400 text-xl"></i>
                     </div>
+                    <span class="text-xs font-medium text-amber-400 bg-amber-500/10 px-3 py-1 rounded-lg">Pending</span>
+                </div>
+                <div class="text-3xl font-bold text-white mb-1">{{ $allSchedules->where('status', 'Pending Approval')->count() }}</div>
+                <div class="text-sm text-slate-400">Awaiting staff approval</div>
                 </div>
 
-                <!-- Status Filter -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Status</label>
-                    <select class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-slate-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400">
-                        <option value="">All Status</option>
-                        <option value="scheduled">Scheduled</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="pending">Pending</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
+            <!-- Confirmed Orders -->
+            <div class="group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-blue-500/50 transition-all hover:shadow-lg hover:shadow-blue-500/10">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-check-circle text-blue-400 text-xl"></i>
+                    </div>
+                    <span class="text-xs font-medium text-blue-400 bg-blue-500/10 px-3 py-1 rounded-lg">Confirmed</span>
+                </div>
+                <div class="text-3xl font-bold text-white mb-1">{{ $allSchedules->where('status', 'Confirmed')->count() }}</div>
+                <div class="text-sm text-slate-400">Confirmed orders</div>
                 </div>
 
-                <!-- Date Filter -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Date Range</label>
-                    <select class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-slate-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400">
-                        <option value="">All Dates</option>
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                    </select>
+            <!-- In Progress Orders -->
+            <div class="group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-orange-500/50 transition-all hover:shadow-lg hover:shadow-orange-500/10">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-cogs text-orange-400 text-xl"></i>
+                    </div>
+                    <span class="text-xs font-medium text-orange-400 bg-orange-500/10 px-3 py-1 rounded-lg">Processing</span>
                 </div>
-            </div>
+                <div class="text-3xl font-bold text-white mb-1">{{ $allSchedules->where('status', 'In Progress')->count() }}</div>
+                <div class="text-sm text-slate-400">Currently processing</div>
         </div>
 
+            <!-- Ready for Pickup -->
+            <div class="group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-green-500/50 transition-all hover:shadow-lg hover:shadow-green-500/10">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-box text-green-400 text-xl"></i>
+                    </div>
+                    <span class="text-xs font-medium text-green-400 bg-green-500/10 px-3 py-1 rounded-lg">Ready</span>
+                </div>
+                <div class="text-3xl font-bold text-white mb-1">{{ $allSchedules->where('status', 'Ready for Pickup')->count() }}</div>
+                <div class="text-sm text-slate-400">Ready for pickup</div>
+            </div>
+        </div>
+    @endif
+
         <!-- Schedules Table -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+    <div class="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden">
+        @if($schedules->count() > 0)
             <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-slate-700">
+                <table class="min-w-full divide-y divide-slate-700/50">
+                    <thead class="bg-slate-700/50 border-b border-slate-600/50">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Schedule ID</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Service</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Drop-off</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Pickup</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Staff</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Actions</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-hashtag text-slate-400"></i>
+                                    Order ID
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-user text-slate-400"></i>
+                                    Customer
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-shopping-basket text-slate-400"></i>
+                                    Service
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-arrow-down text-slate-400"></i>
+                                    Drop-off
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-arrow-up text-slate-400"></i>
+                                    Pickup
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-weight text-slate-400"></i>
+                                    Weight
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-peso-sign text-slate-400"></i>
+                                    Price
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-info-circle text-slate-400"></i>
+                                    Status
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-user-check text-slate-400"></i>
+                                    Approved-by
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="fas fa-cog text-slate-400"></i>
+                                    Actions
+                                </div>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-700">
-                        @forelse($schedules as $schedule)
-                            <tr class="hover:bg-slate-700/50 transition-colors">
+                    <tbody class="bg-slate-800/50 divide-y divide-slate-700/50">
+                        @foreach($schedules as $schedule)
+                            <tr class="hover:bg-slate-700/30 transition-all duration-200 group" data-schedule-id="{{ $schedule['id'] }}">
+                                <!-- ID -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-slate-200">#{{ $schedule['id'] }}</div>
-                                    <div class="text-xs text-slate-400">{{ $schedule['created_at'] }}</div>
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full bg-slate-700/50 flex items-center justify-center">
+                                                <span class="text-xs font-medium text-slate-300">#{{ $schedule['id'] }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                            <div class="text-sm font-medium text-white">Order #{{ $schedule['id'] }}</div>
+                                        </div>
+                                    </div>
                                 </td>
+
+                                <!-- Customer -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-slate-200">{{ $schedule['service_type'] }}</div>
-                                    @if($schedule['notes'])
-                                        <div class="text-xs text-slate-400 mt-1">{{ Str::limit($schedule['notes'], 30) }}</div>
-                                    @endif
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                                                <i class="fas fa-user text-emerald-400 text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                        <div class="text-sm font-medium text-white">{{ $schedule['customer_name'] }}</div>
+                                        </div>
+                                    </div>
                                 </td>
+
+                                <!-- Service -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-slate-200">{{ $schedule['dropoff_date'] }}</div>
-                                    <div class="text-xs text-slate-400">{{ $schedule['dropoff_time'] }}</div>
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full bg-teal-500/20 flex items-center justify-center">
+                                                <i class="fas fa-shopping-basket text-teal-400 text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                        <div class="text-sm font-medium text-white">{{ $schedule['service_type'] }}</div>
+                                        </div>
+                                    </div>
                                 </td>
+
+                                <!-- Drop-off -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-slate-200">{{ $schedule['pickup_date'] }}</div>
-                                    <div class="text-xs text-slate-400">{{ $schedule['pickup_time'] }}</div>
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                                <i class="fas fa-arrow-down text-blue-400 text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                        <div class="text-sm font-medium text-white">{{ \Carbon\Carbon::parse($schedule['dropoff_date'])->format('M j, Y') }}</div>
+                                        <div class="text-xs text-slate-400">{{ $schedule['dropoff_time'] }}</div>
+                                        </div>
+                                    </div>
                                 </td>
+
+                                <!-- Pickup -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                                                <i class="fas fa-arrow-up text-emerald-400 text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                        <div class="text-sm font-medium text-white">{{ \Carbon\Carbon::parse($schedule['pickup_date'])->format('M j, Y') }}</div>
+                                        <div class="text-xs text-slate-400">{{ $schedule['pickup_time'] }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Weight -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                                <i class="fas fa-weight text-purple-400 text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                        @if($schedule['weight'])
+                                            <div class="text-sm font-medium text-white">{{ $schedule['weight'] }} kg</div>
+                                            <div class="text-xs text-slate-400">Weighed</div>
+                                        @else
+                                                <div class="text-sm font-medium text-slate-400">-</div>
+                                        @endif
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Price -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                                                <i class="fas fa-peso-sign text-yellow-400 text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                        @if($schedule['total_price'])
+                                            <div class="text-sm font-medium text-white">₱{{ number_format($schedule['total_price'], 2) }}</div>
+                                            <div class="text-xs text-slate-400">Final</div>
+                                        @else
+                                                <div class="text-sm font-medium text-slate-400">-</div>
+                                        @endif
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Status -->
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @php
-                                        $statusColors = [
-                                            'Scheduled' => 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-                                            'Confirmed' => 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-                                            'Pending' => 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-                                            'Cancelled' => 'bg-red-500/20 text-red-400 border-red-500/30'
-                                        ];
-                                        $statusColor = $statusColors[$schedule['status']] ?? 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+                                        $status = $schedule['status'] ?? 'Scheduled';
+                                        // Use consistent status colors
+                                        $statusColors = \App\Helpers\StatusHelper::getStatusColor($status);
+                                        $statusColor = $statusColors['badge'];
+                                        $dotColor = $statusColors['dot'];
                                     @endphp
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border {{ $statusColor }}">
-                                        {{ $schedule['status'] }}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold border {{ $statusColor }}">
+                                        <div class="w-2 h-2 rounded-full mr-2 {{ $dotColor }}"></div>
+                                        {{ $status }}
                                     </span>
                                 </td>
+
+                                <!-- Approved By -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-slate-200">{{ $schedule['staff_assigned'] }}</div>
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full bg-sky-500/20 flex items-center justify-center">
+                                                <i class="fas fa-user-check text-sky-400 text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                            @if($schedule['approved_by_name'] ?? null)
+                                                <div class="text-sm font-medium text-white">{{ $schedule['approved_by_name'] }}</div>
+                                                @if($schedule['approved_at'] ?? null)
+                                                    <div class="text-xs text-slate-400">{{ \Carbon\Carbon::parse($schedule['approved_at'])->format('M j, Y') }}</div>
+                                                @endif
+                                            @else
+                                                <div class="text-sm font-medium text-slate-400">-</div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex items-center gap-2">
-                                        <a href="{{ route('customer.schedules.show', $schedule['id']) }}" 
-                                           class="text-emerald-400 hover:text-emerald-300 transition-colors" title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @if($schedule['status'] !== 'Cancelled')
-                                            <button class="text-blue-400 hover:text-blue-300 transition-colors" title="Edit Schedule">
-                                                <i class="fas fa-edit"></i>
+
+                                <!-- Actions -->
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button onclick="viewSchedule({{ $schedule['id'] }})" 
+                                                class="inline-flex items-center px-3 py-1.5 bg-slate-700/50 hover:bg-emerald-500/20 border border-slate-600/50 hover:border-emerald-500/50 rounded-lg text-slate-400 hover:text-emerald-400 transition-all text-xs font-medium flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                                                title="View Details">
+                                            <i class="fas fa-eye text-xs"></i>
+                                            View
+                                        </button>
+                                        @if($schedule['status'] === 'Pending Approval')
+                                            <button onclick="editSchedule({{ $schedule['id'] }})" 
+                                                    class="inline-flex items-center px-3 py-1.5 bg-slate-700/50 hover:bg-blue-500/20 border border-slate-600/50 hover:border-blue-500/50 rounded-lg text-slate-400 hover:text-blue-400 transition-all text-xs font-medium flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                    title="Edit Schedule">
+                                                <i class="fas fa-edit text-xs"></i>
+                                                Edit
+                                            </button>
+                                        @else
+                                            <button disabled
+                                                    class="inline-flex items-center px-3 py-1.5 bg-slate-800/30 border border-slate-700/30 rounded-lg text-slate-500 cursor-not-allowed opacity-50 text-xs font-medium flex items-center gap-1.5"
+                                                    title="Not available in this status">
+                                                <i class="fas fa-edit text-xs"></i>
+                                                Edit
                                             </button>
                                         @endif
-                                        @if($schedule['status'] === 'Scheduled' || $schedule['status'] === 'Pending')
-                                            <button class="text-red-400 hover:text-red-300 transition-colors" title="Cancel Schedule">
-                                                <i class="fas fa-times"></i>
+                                        @if($schedule['status'] === 'Pending Approval')
+                                            <button onclick="cancelSchedule({{ $schedule['id'] }})" 
+                                                    class="inline-flex items-center px-3 py-1.5 bg-slate-700/50 hover:bg-red-500/20 border border-slate-600/50 hover:border-red-500/50 rounded-lg text-slate-400 hover:text-red-400 transition-all text-xs font-medium flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                                                    title="Cancel Schedule">
+                                                <i class="fas fa-times text-xs"></i>
+                                                Cancel
+                                            </button>
+                                        @else
+                                            <button disabled
+                                                    class="inline-flex items-center px-3 py-1.5 bg-slate-800/30 border border-slate-700/30 rounded-lg text-slate-500 cursor-not-allowed opacity-50 text-xs font-medium flex items-center gap-1.5"
+                                                    title="Not available in this status">
+                                                <i class="fas fa-times text-xs"></i>
+                                                Cancel
                                             </button>
                                         @endif
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="px-6 py-12 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <i class="fas fa-calendar-alt text-4xl text-slate-500 mb-4"></i>
-                                        <h3 class="text-lg font-medium text-slate-300 mb-2">No schedules found</h3>
-                                        <p class="text-slate-400 mb-4">You haven't scheduled any laundry appointments yet.</p>
-                                        <a href="{{ route('customer.schedules.create') }}" 
-                                           class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                                            <i class="fas fa-plus mr-2"></i>Schedule Your First Appointment
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
+        @else
+            <!-- Empty State -->
+            <div class="p-12">
+                <div class="text-center max-w-md mx-auto">
+                    <div class="w-20 h-20 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-emerald-500/30">
+                        <i class="fas fa-calendar-plus text-emerald-400 text-3xl"></i>
+        </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">No Schedules Yet</h3>
+                    <p class="text-slate-400 mb-6">Get started by scheduling your first laundry pickup and delivery appointment.</p>
+                    <button onclick="openScheduleModal()" 
+                            class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-3 rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-emerald-500/25">
+                        <i class="fas fa-plus"></i>
+                        <span>Schedule Now</span>
+                    </button>
+                </div>
+            </div>
+        @endif
         </div>
 
         <!-- Pagination -->
-        @if($schedules->count() > 0)
-            <div class="mt-6 flex items-center justify-between">
-                <div class="text-sm text-slate-400">
-                    Showing {{ $schedules->count() }} of {{ $schedules->count() }} schedules
+        @if($schedules->hasPages())
+            <div class="mt-8 flex items-center justify-between bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                <div class="text-sm text-slate-300">
+                    Showing <span class="font-medium text-white">{{ $schedules->firstItem() }}</span> to <span class="font-medium text-white">{{ $schedules->lastItem() }}</span> of <span class="font-medium text-white">{{ $schedules->total() }}</span> schedules
                 </div>
                 <div class="flex items-center gap-2">
-                    <button class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors disabled:opacity-50" disabled>
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <span class="px-3 py-2 bg-emerald-500 text-white rounded-lg">1</span>
-                    <button class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors disabled:opacity-50" disabled>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+                    @if($schedules->onFirstPage())
+                        <button class="px-4 py-2 bg-slate-700/50 text-slate-500 rounded-lg cursor-not-allowed opacity-50" disabled>
+                            <i class="fas fa-chevron-left mr-1"></i>
+                            Previous
+                        </button>
+                    @else
+                        <a href="{{ $schedules->previousPageUrl() }}" class="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white rounded-lg transition-colors">
+                            <i class="fas fa-chevron-left mr-1"></i>
+                            Previous
+                        </a>
+                    @endif
+
+                    <div class="flex items-center gap-1">
+                        @foreach($schedules->getUrlRange(1, $schedules->lastPage()) as $page => $url)
+                            @if($page == $schedules->currentPage())
+                                <span class="px-3 py-2 bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 rounded-lg font-medium">{{ $page }}</span>
+                            @else
+                                <a href="{{ $url }}" class="px-3 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white rounded-lg transition-colors">{{ $page }}</a>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    @if($schedules->hasMorePages())
+                        <a href="{{ $schedules->nextPageUrl() }}" class="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white rounded-lg transition-colors">
+                            Next
+                            <i class="fas fa-chevron-right ml-1"></i>
+                        </a>
+                    @else
+                        <button class="px-4 py-2 bg-slate-700/50 text-slate-500 rounded-lg cursor-not-allowed opacity-50" disabled>
+                            Next
+                            <i class="fas fa-chevron-right ml-1"></i>
+                        </button>
+                    @endif
                 </div>
             </div>
         @endif
 
-        <!-- Quick Stats -->
-        @if($schedules->count() > 0)
-            <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-calendar-check text-emerald-400"></i>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-slate-200">{{ $schedules->where('status', 'Confirmed')->count() }}</div>
-                            <div class="text-sm text-slate-400">Confirmed</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-clock text-blue-400"></i>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-slate-200">{{ $schedules->where('status', 'Scheduled')->count() }}</div>
-                            <div class="text-sm text-slate-400">Scheduled</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-hourglass-half text-yellow-400"></i>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-slate-200">{{ $schedules->where('status', 'Pending')->count() }}</div>
-                            <div class="text-sm text-slate-400">Pending</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-times text-red-400"></i>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-slate-200">{{ $schedules->where('status', 'Cancelled')->count() }}</div>
-                            <div class="text-sm text-slate-400">Cancelled</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
+    <!-- Include Modal Components -->
+    @include('customer.schedules.modals.new-schedule')
+    @include('customer.schedules.modals.edit-schedule')
+    @include('customer.schedules.modals.cancel-schedule')
+    @include('customer.schedules.modals.view-schedule')
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[60] space-y-3 max-w-sm">
+        <!-- Toast notifications will be dynamically inserted here -->
     </div>
+
+    <!-- Include CSS -->
+    <link rel="stylesheet" href="{{ asset('css/customer-schedules.css') }}?v={{ time() }}">
+
+    <!-- Include JavaScript -->
+    <script>
+        // Set the routes for form submission
+        window.scheduleStoreRoute = '{{ route("customer.schedules.store") }}';
+        window.scheduleUpdateRoute = '{{ route("customer.schedules.update", ":id") }}';
+        window.scheduleDeleteRoute = '{{ route("customer.schedules.cancel", ":id") }}';
+    </script>
+    <script src="{{ asset('js/customer-schedules.js') }}?v={{ time() }}"></script>
 @endsection

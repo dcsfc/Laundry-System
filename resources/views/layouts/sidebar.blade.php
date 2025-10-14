@@ -1,12 +1,22 @@
 @php
-    $userRole = Auth::user()->role->name ?? 'customer';
+    // Get user from appropriate guard
+    $user = null;
+    if (Auth::guard('admin')->check()) {
+        $user = Auth::guard('admin')->user();
+    } elseif (Auth::guard('customer')->check()) {
+        $user = Auth::guard('customer')->user();
+    } elseif (Auth::guard('web')->check()) {
+        $user = Auth::guard('web')->user();
+    }
+    
+    $userRole = $user->role->name ?? 'customer';
     $isSuperAdmin = $userRole === 'superadmin';
     $isAdmin = $userRole === 'administrator';
     $isStaff = $userRole === 'staff';
     $isCustomer = $userRole === 'customer';
     
     // Debug: Check if user is authenticated
-    if (!Auth::check()) {
+    if (!$user) {
         $userRole = 'customer';
         $isSuperAdmin = false;
         $isAdmin = false;
@@ -71,6 +81,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'Laundry System')</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -87,6 +98,16 @@
       background: #0f172a;
       color: #f8fafc;
     }
+    
+    /* Alpine.js x-cloak directive - only hide until Alpine is initialized */
+    [x-cloak] {
+      display: none !important;
+    }
+    
+    /* Ensure x-show can override x-cloak after Alpine initialization */
+    [x-data] [x-cloak] {
+      display: none !important;
+    }
     .main-content {
       margin-left: 240px;
       margin-top: 70px;
@@ -97,6 +118,14 @@
     }
     .main-content.sidebar-collapsed {
       margin-left: 80px;
+    }
+    
+    /* Override Tailwind container for sidebar layout */
+    .main-content .container {
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
     }
     
     /* Sidebar collapsed state */
@@ -178,13 +207,6 @@
         </a>
       @endif
 
-      <!-- Orders / Transactions - Admin & Staff Only -->
-      @if($isAdmin || $isStaff)
-        <a href="{{ $isAdmin ? route('admin.orders.index') : route('staff.orders.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.orders.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-shopping-cart w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.orders.*') ? 'text-white' : 'text-slate-400' }}"></i>
-          <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Orders / Transactions</span>
-        </a>
-      @endif
 
       <!-- Schedules - Admin, Staff & Customer Only -->
       @if($isAdmin)
@@ -198,8 +220,8 @@
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Schedules</span>
         </a>
       @elseif($isCustomer)
-        <a href="{{ route('customer.schedules.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('customer.schedules.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-calendar-alt w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('customer.schedules.*') ? 'text-white' : 'text-slate-400' }}"></i>
+        <a href="{{ route('customer.schedules.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('customer.schedules.index') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
+          <i class="sidebar-icon fas fa-calendar-alt w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('customer.schedules.index') ? 'text-white' : 'text-slate-400' }}"></i>
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Schedule Laundry</span>
         </a>
       @endif
@@ -251,11 +273,29 @@
 
       <!-- Customer-specific menu items -->
       @if($isCustomer)
-        <a href="{{ route('customer.orders.index') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('customer.orders.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
-          <i class="sidebar-icon fas fa-history w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('customer.orders.*') ? 'text-white' : 'text-slate-400' }}"></i>
+        <a href="{{ route('customer.schedules.history') }}" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:{{ $gradientHoverFrom }} hover:{{ $gradientHoverTo }} hover:shadow-lg hover:shadow-{{ $shadowColor }}-500/10 hover:translate-x-1 {{ request()->routeIs('customer.schedules.history') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : '' }}">
+          <i class="sidebar-icon fas fa-history w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 {{ request()->routeIs('customer.schedules.history') ? 'text-white' : 'text-slate-400' }}"></i>
           <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Order History</span>
         </a>
       @endif
+
+      <!-- Logout Section -->
+      <div class="mt-auto pt-4 border-t border-slate-700/50">
+        @php
+            $logoutRoute = 'logout';
+            if (Auth::guard('admin')->check()) {
+                $logoutRoute = 'admin.logout';
+            }
+        @endphp
+        
+        <form method="POST" action="{{ route($logoutRoute) }}" class="w-full">
+            @csrf
+            <button type="submit" class="group flex items-center gap-3 px-4 py-3 w-full text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:from-red-500/20 hover:to-red-600/20 hover:shadow-lg hover:shadow-red-500/10 hover:translate-x-1">
+                <i class="sidebar-icon fas fa-sign-out-alt w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 text-slate-400 group-hover:text-red-400"></i>
+                <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Log Out</span>
+            </button>
+        </form>
+      </div>
     </div>
   </div>
   <!-- Main Content -->

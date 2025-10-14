@@ -2,13 +2,17 @@
 
 @section('title', 'Customer Dashboard')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/status-badges.css') }}">
+@endpush
+
 @section('content')
     <div class="container">
         <!-- Dashboard Header -->
         <div class="mb-6">
             <div>
                 <h1 class="text-3xl font-bold text-slate-50 mb-2">Customer Dashboard</h1>
-                <p class="text-slate-400">Track your laundry orders, schedule pickups, and view your transaction history.</p>
+                <p class="text-slate-400">Track your laundry schedules, manage pickups, and view your service history.</p>
             </div>
         </div>
 
@@ -18,7 +22,7 @@
             <div class="group bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 rounded-xl p-6 hover:shadow-lg hover:border-emerald-400/40 transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <p class="text-slate-400 text-sm font-medium mb-1">Total Orders</p>
+                        <p class="text-slate-400 text-sm font-medium mb-1">Total Schedules</p>
                         <p class="text-slate-50 text-2xl font-bold">{{ $totalOrders }}</p>
                         <p class="text-emerald-400 text-sm font-medium mt-1 flex items-center">
                             <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $monthlyOrderGrowth }} this month
@@ -35,7 +39,7 @@
             <div class="group bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 rounded-xl p-6 hover:shadow-lg hover:border-teal-400/40 transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <p class="text-slate-400 text-sm font-medium mb-1">Completed</p>
+                        <p class="text-slate-400 text-sm font-medium mb-1">Completed Schedules</p>
                         <p class="text-slate-50 text-2xl font-bold">{{ $completedOrders }}</p>
                         <p class="text-teal-400 text-sm font-medium mt-1 flex items-center">
                             <i class="fas fa-check mr-1 text-xs"></i>{{ $completionRate }}% completion rate
@@ -83,6 +87,126 @@
             </div>
         </div>
 
+        <!-- Announcements Section -->
+        <div class="mb-8">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-50">Important Announcements</h3>
+                    </div>
+                    @if($announcements && count($announcements) > 0)
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                            <span class="text-sm text-emerald-400 font-medium">{{ count($announcements) }} announcement{{ count($announcements) !== 1 ? 's' : '' }}</span>
+                        </div>
+                    @endif
+                </div>
+                
+                <!-- Announcements List -->
+                @if($announcements && count($announcements) > 0)
+                    <div class="space-y-3">
+                        @foreach($announcements->take(3) as $announcement)
+                            <div class="group bg-slate-700/30 border border-slate-600/50 rounded-lg p-4 hover:bg-slate-700/50 hover:border-slate-600/70 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer" 
+                                 onclick="openAnnouncementModal({{ $announcement->id }})">
+                                <div class="flex items-start gap-3">
+                                    <!-- Status Indicator -->
+                                    <div class="flex-shrink-0 mt-1">
+                                        @if($announcement->is_pinned)
+                                            <div class="w-2 h-2 bg-amber-400 rounded-full"></div>
+                                        @else
+                                            <div class="w-2 h-2 bg-emerald-400 rounded-full opacity-60"></div>
+                                        @endif
+                                    </div>
+                                    
+                                    <!-- Content -->
+                                    <div class="flex-1 min-w-0">
+                                        <!-- Title and Badges -->
+                                        <div class="flex items-start justify-between gap-2 mb-2">
+                                            <h4 class="text-slate-50 font-semibold text-sm leading-tight group-hover:text-emerald-400 transition-colors">
+                                                {{ $announcement->title }}
+                                            </h4>
+                                            <div class="flex items-center gap-1 flex-shrink-0">
+                                                @if($announcement->is_pinned)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                        </svg>
+                                                        Pinned
+                                                    </span>
+                                                @endif
+                                                @if($announcement->type)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $announcement->type_badge_class }}">
+                                                        {{ ucfirst($announcement->type) }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Message Preview -->
+                                        <p class="text-slate-400 text-xs leading-relaxed mb-3 line-clamp-2">
+                                            {{ Str::limit($announcement->message, 120) }}
+                                        </p>
+                                        
+                                        <!-- Meta Information -->
+                                        <div class="flex items-center gap-3 text-xs text-slate-500">
+                                            <span class="flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                                </svg>
+                                                {{ $announcement->createdBy->name ?? 'System' }}
+                                            </span>
+                                            <span class="flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                {{ $announcement->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Read More Indicator -->
+                                    @if(strlen($announcement->message) > 120)
+                                        <div class="flex-shrink-0 mt-1">
+                                            <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="mt-6 pt-4 border-t border-slate-700">
+                        <a href="{{ route('customer.announcements') }}" class="inline-flex items-center text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors group">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                            View all announcements
+                        </a>
+                    </div>
+                @else
+                    <!-- Empty State -->
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-slate-300 font-medium mb-2">No announcements yet</h4>
+                        <p class="text-slate-500 text-sm">Check back soon for important updates and news.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         <!-- Charts Row -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Order History Chart -->
@@ -127,29 +251,43 @@
             <!-- Recent Orders -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-semibold text-slate-50">Recent Orders</h3>
-                    <a href="{{ route('customer.orders.index') }}" class="text-emerald-400 hover:text-emerald-300 text-sm font-medium">
+                    <h3 class="text-xl font-semibold text-slate-50">Recent Schedules</h3>
+                    <a href="{{ route('customer.schedules.index') }}" class="text-emerald-400 hover:text-emerald-300 text-sm font-medium">
                         View all
                     </a>
                 </div>
                 <div class="space-y-4">
                     @forelse($recentOrders as $order)
                         @php
-                            $statusColors = [
-                                'Scheduled' => ['bg' => 'border-emerald-400', 'dot' => 'bg-emerald-400', 'badge' => 'bg-emerald-500/20 text-emerald-400'],
-                                'In Progress' => ['bg' => 'border-teal-400', 'dot' => 'bg-teal-400', 'badge' => 'bg-teal-500/20 text-teal-400'],
-                                'Completed' => ['bg' => 'border-emerald-500', 'dot' => 'bg-emerald-500', 'badge' => 'bg-emerald-500/20 text-emerald-500']
-                            ];
-                            $statusColor = $statusColors[$order['status']] ?? ['bg' => 'border-slate-400', 'dot' => 'bg-slate-400', 'badge' => 'bg-slate-500/20 text-slate-400'];
+                            // Use consistent status colors - simplified approach
+                            $statusColors = \App\Helpers\StatusHelper::getStatusColor($order['status']);
+                            $statusColor = $statusColors['badge'];
+                            $dotColor = $statusColors['dot'];
+                            
+                            // Set border color based on status
+                            $borderColor = 'border-slate-400'; // Default
+                            if (str_contains($statusColor, 'yellow')) {
+                                $borderColor = 'border-yellow-400';
+                            } elseif (str_contains($statusColor, 'green')) {
+                                $borderColor = 'border-green-400';
+                            } elseif (str_contains($statusColor, 'blue')) {
+                                $borderColor = 'border-blue-400';
+                            } elseif (str_contains($statusColor, 'purple')) {
+                                $borderColor = 'border-purple-400';
+                            } elseif (str_contains($statusColor, 'red')) {
+                                $borderColor = 'border-red-400';
+                            } elseif (str_contains($statusColor, 'gray')) {
+                                $borderColor = 'border-gray-400';
+                            }
                         @endphp
-                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 {{ $statusColor['bg'] }}">
-                            <div class="w-2 h-2 {{ $statusColor['dot'] }} rounded-full mt-2"></div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 {{ $borderColor }}">
+                            <div class="w-2 h-2 {{ $dotColor }} rounded-full mt-2"></div>
                             <div class="flex-1">
                                 <h4 class="text-slate-50 font-medium">Order #{{ $order['id'] }} - {{ $order['status'] }}</h4>
-                                <p class="text-slate-400 text-sm">{{ $order['service_type'] }} - ₱{{ number_format($order['total_price'], 2) }}</p>
+                                <p class="text-slate-400 text-sm">{{ $order['service_type'] }} - ₱{{ $order['total_price'] }}</p>
                                 <p class="text-slate-500 text-xs mt-1">{{ $order['created_at'] }}</p>
                             </div>
-                            <span class="px-2 py-1 {{ $statusColor['badge'] }} text-xs rounded-full">{{ $order['status'] }}</span>
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold border {{ $statusColor }}">{{ $order['status'] }}</span>
                         </div>
                     @empty
                         <div class="text-center py-8">
@@ -297,7 +435,7 @@
         const orderHistoryOptions = {
             series: [{
                 name: 'Orders',
-                data: [2, 3, 1, 4, 2, 3]
+                data: @json($orderHistoryData['data'])
             }],
             chart: {
                 type: 'line',
@@ -346,7 +484,7 @@
                 }
             },
             xaxis: {
-                categories: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+                categories: @json($orderHistoryData['categories']),
                 axisBorder: {
                     color: '#334155'
                 },
@@ -393,7 +531,7 @@
 
         // Service Usage Chart with enhanced styling
         const serviceUsageOptions = {
-            series: [5, 3, 2, 2],
+            series: @json($serviceUsageData['data']),
             chart: {
                 type: 'donut',
                 height: 300,
@@ -404,8 +542,8 @@
                     speed: 800
                 }
             },
-            colors: ['#10B981', '#14B8A6', '#059669', '#047857'],
-            labels: ['Wash & Fold', 'Dry Cleaning', 'Ironing', 'Express'],
+            colors: ['#10B981', '#14B8A6', '#059669', '#047857', '#065F46', '#064E3B'],
+            labels: @json($serviceUsageData['labels']),
             legend: {
                 position: 'bottom',
                 fontSize: '12px',
@@ -433,7 +571,7 @@
                                 fontWeight: 600,
                                 fontFamily: 'Inter, sans-serif',
                                 formatter: function (w) {
-                                    return '12'
+                                    return '{{ $serviceUsageData["total"] }}'
                                 }
                             }
                         }
@@ -472,7 +610,7 @@
             const ordersSparkline = new ApexCharts(document.querySelector("#ordersSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [8, 9, 10, 11, 11, 12]
+                    data: @json($sparklineData['orders'])
                 }],
                 colors: ['#10B981']
             });
@@ -481,7 +619,7 @@
             const completedSparkline = new ApexCharts(document.querySelector("#completedSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [5, 6, 6, 7, 7, 8]
+                    data: @json($sparklineData['completed'])
                 }],
                 colors: ['#14B8A6']
             });
@@ -490,7 +628,7 @@
             const pendingSparkline = new ApexCharts(document.querySelector("#pendingSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [2, 3, 2, 4, 3, 3]
+                    data: @json($sparklineData['pending'])
                 }],
                 colors: ['#10B981']
             });
@@ -499,7 +637,7 @@
             const spentSparkline = new ApexCharts(document.querySelector("#spentSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [1000, 1050, 1100, 1150, 1200, 1250]
+                    data: @json($sparklineData['spent'])
                 }],
                 colors: ['#14B8A6']
             });
@@ -508,6 +646,24 @@
             // Add smooth scroll behavior
             document.documentElement.style.scrollBehavior = 'smooth';
         });
+
+        // Announcement modal functionality
+        function openAnnouncementModal(announcementId) {
+            // Option 1: Redirect to announcements page with anchor (current implementation)
+            window.location.href = `{{ route('customer.announcements') }}#announcement-${announcementId}`;
+            
+            // Option 2: Open modal (uncomment to use instead of redirect)
+            // fetch(`/api/announcements/${announcementId}`)
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         showAnnouncementModal(data);
+            //     })
+            //     .catch(error => {
+            //         console.error('Error fetching announcement:', error);
+            //         // Fallback to redirect
+            //         window.location.href = `{{ route('customer.announcements') }}#announcement-${announcementId}`;
+            //     });
+        }
     </script>
 
     <!-- Custom CSS for enhanced animations and micro-interactions -->
@@ -585,6 +741,24 @@
             50% {
                 opacity: 0.7;
             }
+        }
+
+        /* Line clamp utility */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Announcement card hover effects */
+        .announcement-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .announcement-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
     </style>
 @endsection

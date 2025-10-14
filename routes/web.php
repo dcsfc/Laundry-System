@@ -2,257 +2,30 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\UserController;
-use App\Http\Controllers\SuperAdmin\AnnouncementController;
-use App\Http\Controllers\SuperAdmin\SettingController;
+use App\Http\Controllers\SuperAdmin\AnnouncementController as SuperAdminAnnouncementController;
 use App\Http\Controllers\SuperAdmin\ServiceController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
-
-// Test route for data table
-Route::get('/test-datatable', function () {
-    $users = [
-        [
-            'id' => 1,
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'phone_number' => '+1 (555) 123-4567',
-            'role' => 'Administrator',
-            'status' => 'Active',
-            'created_at' => '2023-01-15',
-            'created_by_name' => 'System',
-            'account_age' => '365 days'
-        ],
-        [
-            'id' => 2,
-            'name' => 'Jane Smith',
-            'email' => 'jane@example.com',
-            'phone_number' => '+1 (555) 234-5678',
-            'role' => 'Staff',
-            'status' => 'Inactive',
-            'created_at' => '2023-02-20',
-            'created_by_name' => 'John Doe',
-            'account_age' => '340 days'
-        ],
-        [
-            'id' => 3,
-            'name' => 'Bob Johnson',
-            'email' => 'bob@example.com',
-            'phone_number' => '+1 (555) 345-6789',
-            'role' => 'Customer',
-            'status' => 'Active',
-            'created_at' => '2023-03-10',
-            'created_by_name' => 'Jane Smith',
-            'account_age' => '320 days'
-        ],
-        [
-            'id' => 4,
-            'name' => 'Alice Brown',
-            'email' => 'alice@example.com',
-            'phone_number' => '+1 (555) 456-7890',
-            'role' => 'Staff',
-            'status' => 'Pending',
-            'created_at' => '2023-04-01',
-            'created_by_name' => 'Bob Johnson',
-            'account_age' => '300 days'
-        ],
-        [
-            'id' => 5,
-            'name' => 'Charlie Wilson',
-            'email' => 'charlie@example.com',
-            'phone_number' => '+1 (555) 567-8901',
-            'role' => 'Customer',
-            'status' => 'Active',
-            'created_at' => '2023-05-05',
-            'created_by_name' => 'Alice Brown',
-            'account_age' => '280 days'
-        ]
-    ];
-    
-    $columns = [
-        ['key' => 'id', 'label' => 'ID', 'sortable' => true],
-        ['key' => 'name', 'label' => 'Name', 'sortable' => true],
-        ['key' => 'email', 'label' => 'Email', 'sortable' => true],
-        ['key' => 'phone_number', 'label' => 'Phone', 'sortable' => true],
-        ['key' => 'role', 'label' => 'Role', 'sortable' => true],
-        ['key' => 'status', 'label' => 'Status', 'sortable' => true],
-        ['key' => 'created_at', 'label' => 'Created', 'sortable' => true],
-        ['key' => 'created_by_name', 'label' => 'Created By', 'sortable' => true],
-        ['key' => 'account_age', 'label' => 'Account Age', 'sortable' => true],
-    ];
-    
-    $actions = [
-        ['key' => 'viewUser', 'label' => 'View', 'onclick' => 'viewUser'],
-        ['key' => 'editUser', 'label' => 'Edit', 'onclick' => 'editUser'],
-        ['key' => 'toggleUserStatus', 'label' => 'Toggle Status', 'onclick' => 'toggleUserStatus'],
-        ['key' => 'deleteUser', 'label' => 'Delete', 'onclick' => 'deleteUser'],
-    ];
-    
-    return view('test-data-table', compact('users', 'columns', 'actions'));
-});
-
-// Simple test route
-Route::get('/simple-test', function () {
-    return view('simple-test');
-});
-
-// Direct test route
-Route::get('/direct-test', function () {
-    return view('direct-test');
-});
-
-// Debug users route
-Route::get('/debug-users', function () {
-    try {
-        // Test database connection
-        $userCount = User::count();
-        $roleCount = Role::count();
-        
-        // Get first 5 users
-        $users = User::with(['role', 'createdBy'])
-            ->select([
-                'users.id',
-                'users.name',
-                'users.email',
-                'users.phone_number',
-                'users.status',
-                'users.created_at',
-                'users.role_id',
-                'users.created_by'
-            ])
-            ->limit(5)
-            ->get();
-            
-        return response()->json([
-            'status' => 'success',
-            'user_count' => $userCount,
-            'role_count' => $roleCount,
-            'users' => $users->toArray(),
-            'message' => 'Database connection working'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ], 500);
-    }
-});
-
-// Quick debug route for controller
-Route::get('/debug-controller', function () {
-    try {
-        $userCount = User::count();
-        $users = User::all();
-        
-        return response()->json([
-            'user_count' => $userCount,
-            'users' => $users->toArray(),
-            'message' => 'Controller debug working'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => $e->getMessage()
-        ], 500);
-    }
-});
+use App\Http\Controllers\AnnouncementController;
 
 // Landing page
 Route::get('/', function () {
     return view('landing');
 });
 
-// Development/test routes - only loaded in local environment
-if (app()->environment('local')) {
-    // Test route for data table (for development)
-    Route::get('/test-table', [App\Http\Controllers\DataTableController::class, 'index']);
-
-    // Simple view test
-    Route::get('/view-test', function() {
-        $users = App\Models\User::with('role')->get()->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role ? $user->role->name : 'N/A',
-                'status' => ucfirst($user->status ?? 'active'),
-                'created_at' => $user->created_at ? $user->created_at->format('Y-m-d') : 'N/A',
-            ];
-        });
-
-        return view('test-simple', ['users' => $users->toArray()]);
-    });
-    
-    // Database test route
-    Route::get('/db-test', function() {
-        try {
-            $userCount = App\Models\User::count();
-            $roleCount = App\Models\Role::count();
-            $users = App\Models\User::limit(5)->get();
-            
-            return response()->json([
-                'status' => 'success',
-                'user_count' => $userCount,
-                'role_count' => $roleCount,
-                'sample_users' => $users->toArray(),
-                'message' => 'Database connection working'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    });
-
-    // Debug route for data table
-    Route::get('/debug-table', function() {
-        $users = App\Models\User::with('role')->get()->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role ? $user->role->name : 'N/A',
-                'status' => ucfirst($user->status ?? 'active'),
-                'created_at' => $user->created_at ? $user->created_at->format('Y-m-d') : 'N/A',
-            ];
-        });
-
-        $usersArray = $users->toArray();
-
-        if (empty($usersArray)) {
-            $usersArray = [
-                ['id' => 1, 'name' => 'Super Admin', 'email' => 'admin@laundryapp.com', 'role' => 'superadmin', 'status' => 'Active', 'created_at' => '2024-01-01'],
-                ['id' => 2, 'name' => 'John Staff', 'email' => 'john@laundryapp.com', 'role' => 'staff', 'status' => 'Active', 'created_at' => '2024-01-10'],
-            ];
-        }
-
-        $columns = [
-            ['key' => 'id', 'label' => 'ID'],
-            ['key' => 'name', 'label' => 'Full Name'],
-            ['key' => 'email', 'label' => 'Email'],
-            ['key' => 'role', 'label' => 'Role'],
-            ['key' => 'status', 'label' => 'Status'],
-            ['key' => 'created_at', 'label' => 'Created'],
-        ];
-
-        $actions = [
-            ['label' => 'View'],
-            ['label' => 'Edit'],
-            ['label' => 'Delete'],
-        ];
-
-        return view('debug-datatable', [
-            'users' => $usersArray,
-            'columns' => $columns,
-            'actions' => $actions,
-        ]);
-    });
-}
-
 // Default dashboard route - redirects based on user role
 Route::get('/dashboard', function () {
-    $user = auth()->user();
-    if ($user->role) {
+    $user = null;
+    
+    // Check which guard the user is authenticated with
+    if (Auth::guard('admin')->check()) {
+        $user = Auth::guard('admin')->user();
+    } elseif (Auth::guard('customer')->check()) {
+        $user = Auth::guard('customer')->user();
+    } elseif (Auth::guard('web')->check()) {
+        $user = Auth::guard('web')->user();
+    }
+    
+    if ($user && $user->role) {
         switch (strtolower($user->role->name)) {
             case 'superadmin':
                 return redirect()->route('superadmin.dashboard');
@@ -263,116 +36,63 @@ Route::get('/dashboard', function () {
             case 'customer':
                 return redirect()->route('customer.dashboard');
             default:
-                return redirect()->route('superadmin.dashboard');
+                return redirect()->route('customer.dashboard');
         }
     }
-    return redirect()->route('superadmin.dashboard');
-})->middleware(['auth'])->name('dashboard');
+    return redirect()->route('login');
+})->middleware(['auth:admin,customer,web'])->name('dashboard');
 
 // Authenticated routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth:admin,customer,web'])->group(function () {
 
     /**
      * 🔑 Superadmin Routes
      * URL: /superadmin/...
      * Names: superadmin.*
      */
-    Route::middleware('role:superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::middleware(['auth:admin', 'role:superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // AJAX routes for user management (must come BEFORE resource route)
-        Route::get('users/debug', [UserController::class, 'debug'])->name('users.debug');
         Route::post('users/fetch', [UserController::class, 'fetchUsers']);
         Route::get('users/datatable', [UserController::class, 'fetchUsers'])->name('users.datatable');
         Route::post('users/get-data', [UserController::class, 'getUserData']);
         Route::post('users/update-ajax', [UserController::class, 'updateUserAjax']);
         Route::post('users/store-ajax', [UserController::class, 'storeAjax']);
+        Route::put('users/{user}', [UserController::class, 'updateAjax']);
         Route::get('roles', [UserController::class, 'getRoles']);
         Route::post('users/toggle-status', [UserController::class, 'toggleUserStatus']);
-        Route::post('users/reset-password', [UserController::class, 'resetUserPassword']);
+        Route::post('users/delete-ajax', [UserController::class, 'deleteUserAjax']);
         Route::get('users/activity', [UserController::class, 'getUserActivity']);
         
-        // Service Management (handled by resource routes below)
+        // Audit Logs
+        Route::get('audit-logs', [App\Http\Controllers\SuperAdmin\AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('audit-logs/user/{userId}', [App\Http\Controllers\SuperAdmin\AuditLogController::class, 'getUserActivity'])->name('audit-logs.user');
+        Route::post('audit-logs/clear-old', [App\Http\Controllers\SuperAdmin\AuditLogController::class, 'clearOld'])->name('audit-logs.clear-old');
         
-        // Data Table Examples
-        Route::get('/data-table-examples', function () {
-            return view('examples.user-management-example');
-        })->name('data-table-examples');
-        
-        Route::get('/data-table-products', function () {
-            return view('examples.products-example');
-        })->name('data-table-products');
-        
-        Route::get('/data-table-orders', function () {
-            return view('examples.orders-example');
-        })->name('data-table-orders');
-        
-        // Debug route to check database
-        Route::get('/debug-users', function () {
-            $users = \App\Models\User::all();
-            return response()->json([
-                'total_users' => $users->count(),
-                'users' => $users->toArray(),
-                'first_user' => $users->first(),
-                'roles' => \App\Models\Role::all()->toArray()
-            ]);
-        })->name('debug.users');
-        
-        // Test route for data table
-        Route::get('/test-datatable', function () {
-            $users = [
-                ['id' => 1, 'name' => 'John Doe', 'email' => 'john@example.com', 'status' => 'active', 'created_at' => '2024-01-15'],
-                ['id' => 2, 'name' => 'Jane Smith', 'email' => 'jane@example.com', 'status' => 'inactive', 'created_at' => '2024-01-20'],
-                ['id' => 3, 'name' => 'Bob Johnson', 'email' => 'bob@example.com', 'status' => 'active', 'created_at' => '2024-02-01'],
-            ];
-            
-            $columns = [
-                ['key' => 'id', 'label' => 'ID', 'sortable' => true],
-                ['key' => 'name', 'label' => 'Name', 'sortable' => true],
-                ['key' => 'email', 'label' => 'Email', 'sortable' => true],
-                ['key' => 'status', 'label' => 'Status', 'sortable' => true],
-                ['key' => 'created_at', 'label' => 'Created', 'sortable' => true],
-            ];
-            
-            $actions = [
-                ['label' => 'View', 'onclick' => 'viewUser'],
-                ['label' => 'Edit', 'onclick' => 'editUser'],
-            ];
-            
-            return view('test-datatable', compact('users', 'columns', 'actions'));
-        })->name('test-datatable');
-        
-        // Individual user routes handled by resource below
-        
-        // Debug route to check authentication
-        Route::get('debug-auth', function() {
-            return response()->json([
-                'auth_check' => auth()->check(),
-                'user_id' => auth()->id(),
-                'user_name' => auth()->user()?->name,
-                'user_role' => auth()->user()?->role?->name,
-                'session_id' => session()->getId()
-            ]);
-        });
-        
-        // Test component route
-        Route::get('test-component', function() {
-            return view('test-component');
-        });
-
-        // Table headers demo route
-        Route::get('table-headers-demo', function() {
-            return view('demo-table-headers');
-        })->name('table-headers-demo');
+        // System Settings
+        Route::get('settings', [App\Http\Controllers\SuperAdmin\SettingsController::class, 'index'])->name('settings.index');
+        Route::get('settings/data', [App\Http\Controllers\SuperAdmin\SettingsController::class, 'getSettings']);
+        Route::post('settings', [App\Http\Controllers\SuperAdmin\SettingsController::class, 'saveSettings']);
+        Route::post('settings/test-email', [App\Http\Controllers\SuperAdmin\SettingsController::class, 'testEmail']);
+        Route::post('settings/clear-cache', [App\Http\Controllers\SuperAdmin\SettingsController::class, 'clearCache']);
+        Route::get('settings/audit-logs', [App\Http\Controllers\SuperAdmin\SettingsController::class, 'getAuditLogs']);
+        Route::get('settings/audit-logs/export', [App\Http\Controllers\SuperAdmin\SettingsController::class, 'exportAuditLogs']);
+        Route::post('settings/backup', [App\Http\Controllers\SuperAdmin\SettingsController::class, 'createBackup']);
 
         // Features - Super Admin limited to User Management, Announcements, and System Settings
         Route::resource('users', UserController::class);
-        Route::resource('announcements', AnnouncementController::class)->only(['index']);
-        Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
-        Route::post('settings/{setting}', [SettingController::class, 'update'])->name('settings.update');
+        Route::resource('announcements', SuperAdminAnnouncementController::class);
+        Route::post('announcements/{announcement}/toggle-status', [SuperAdminAnnouncementController::class, 'toggleStatus'])->name('announcements.toggle-status');
+        Route::post('announcements/{announcement}/toggle-pin', [SuperAdminAnnouncementController::class, 'togglePin'])->name('announcements.toggle-pin');
         
         // Profile routes (defined earlier in this group)
+    });
+
+    // Dashboard announcements for all authenticated users
+    Route::middleware('auth:admin,customer,web')->group(function () {
+        Route::get('/announcements/dashboard', [AnnouncementController::class, 'getDashboardAnnouncements'])->name('announcements.dashboard');
     });
 
     /**
@@ -380,7 +100,7 @@ Route::middleware(['auth'])->group(function () {
      * URL: /admin/dashboard
      * Name: admin.dashboard
      */
-    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['auth:admin', 'role:administrator'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', function () {
             return view('dashboard.admin'); // resources/views/dashboard/admin.blade.php
         })->name('dashboard');
@@ -397,14 +117,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         
-        // Orders Management
-        Route::get('/orders', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/create', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'create'])->name('orders.create');
-        Route::post('/orders', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'store'])->name('orders.store');
-        Route::get('/orders/{order}', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'show'])->name('orders.show');
-        Route::get('/orders/{order}/edit', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'edit'])->name('orders.edit');
-        Route::put('/orders/{order}', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'update'])->name('orders.update');
-        Route::delete('/orders/{order}', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'destroy'])->name('orders.destroy');
         
         // Schedules Management
         Route::get('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'index'])->name('schedules.index');
@@ -455,20 +167,28 @@ Route::middleware(['auth'])->group(function () {
      * URL: /staff/dashboard
      * Name: staff.dashboard
      */
-    Route::middleware('role:staff')->prefix('staff')->name('staff.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dashboard.staff'); // resources/views/dashboard/staff.blade.php
-        })->name('dashboard');
+    Route::middleware(['auth:admin', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\StaffController::class, 'dashboard'])->name('dashboard');
         
-        // Orders Management
-        Route::get('/orders', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{order}', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'show'])->name('orders.show');
-        Route::put('/orders/{order}', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'update'])->name('orders.update');
         
-        // Schedules Management
-        Route::get('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'index'])->name('schedules.index');
-        Route::get('/schedules/{schedule}', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'show'])->name('schedules.show');
-        Route::put('/schedules/{schedule}', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'update'])->name('schedules.update');
+        // API routes for modals
+        Route::get('/api/customers', function() {
+            $customers = \App\Models\User::whereHas('role', function($query) {
+                $query->where('name', 'customer');
+            })->select('id', 'name', 'email')->get();
+            
+            return response()->json(['customers' => $customers]);
+        });
+        
+        // Schedules Management (Approval Workflow)
+        Route::get('/schedules', [\App\Http\Controllers\Staff\ScheduleController::class, 'index'])->name('schedules.index');
+        Route::get('/schedules/{schedule}', [\App\Http\Controllers\Staff\ScheduleController::class, 'show'])->name('schedules.show');
+        Route::post('/schedules/{schedule}/approve', [\App\Http\Controllers\Staff\ScheduleController::class, 'approve'])->name('schedules.approve');
+        Route::post('/schedules/{schedule}/reject', [\App\Http\Controllers\Staff\ScheduleController::class, 'reject'])->name('schedules.reject');
+        Route::put('/schedules/{schedule}/status', [\App\Http\Controllers\Staff\ScheduleController::class, 'updateStatus'])->name('schedules.status');
+        Route::put('/schedules/{schedule}/pricing', [\App\Http\Controllers\Staff\ScheduleController::class, 'setPricing'])->name('schedules.pricing');
+        Route::get('/schedules/stats', [\App\Http\Controllers\Staff\ScheduleController::class, 'getStats'])->name('schedules.stats');
+        Route::post('/schedules/fetch', [\App\Http\Controllers\Staff\ScheduleController::class, 'index'])->name('schedules.fetch');
         
         // Inventory Management
         Route::get('/inventory', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'index'])->name('inventory.index');
@@ -501,18 +221,27 @@ Route::middleware(['auth'])->group(function () {
      * URL: /customer/dashboard
      * Name: customer.dashboard
      */
-    Route::middleware('role:customer')->prefix('customer')->name('customer.')->group(function () {
+    Route::middleware(['auth:customer', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\CustomerController::class, 'dashboard'])->name('dashboard');
         
         // Schedules Management (Customer can schedule laundry)
         Route::get('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerSchedules'])->name('schedules.index');
         Route::get('/schedules/create', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'create'])->name('schedules.create');
-        Route::post('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'store'])->name('schedules.store');
+        Route::post('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerScheduleCreate'])->name('schedules.store');
+        
+        // Schedule History (Customer can view completed/cancelled schedules) - MUST be before parameterized routes
+        Route::get('/schedules/history', [\App\Http\Controllers\SuperAdmin\ScheduleHistoryController::class, 'index'])->name('schedules.history');
+        
         Route::get('/schedules/{schedule}', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerScheduleShow'])->name('schedules.show');
+        // Update schedule
+        Route::post('/schedules/{schedule}/update', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerScheduleUpdate'])->name('schedules.update');
+        // Cancel schedule
+        Route::post('/schedules/{schedule}/cancel', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerScheduleCancel'])->name('schedules.cancel');
         
         // Orders Management (Customer can view their orders)
-        Route::get('/orders', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'customerOrders'])->name('orders.index');
-        Route::get('/orders/{order}', [\App\Http\Controllers\SuperAdmin\OrderController::class, 'customerOrderShow'])->name('orders.show');
+        
+        // Announcements (Customer can view announcements)
+        Route::get('/announcements', [\App\Http\Controllers\CustomerController::class, 'announcements'])->name('announcements');
         
         // Profile routes
         Route::get('/profile', function () {
@@ -527,5 +256,37 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-// Authentication routes (Laravel Breeze/Fortify/etc.)
+// Debug route for customer schedules
+Route::get('/debug-customer-schedules', function () {
+    $currentUser = auth()->user();
+    
+    if (!$currentUser) {
+        return 'No user logged in';
+    }
+    
+    $orders = \App\Models\Order::where('customer_id', $currentUser->id)
+        ->with(['service', 'staff', 'customer'])
+        ->get();
+    
+    $debug = [
+        'user_id' => $currentUser->id,
+        'user_name' => $currentUser->name,
+        'total_orders' => $orders->count(),
+        'orders' => $orders->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'customer_id' => $order->customer_id,
+                'customer_name' => $order->customer ? $order->customer->name : 'NULL',
+                'customer_phone' => $order->customer ? $order->customer->phone_number : 'NULL',
+                'service_name' => $order->service ? $order->service->name : 'NULL',
+                'staff_name' => $order->staff ? $order->staff->name : 'NULL',
+                'status' => $order->status,
+            ];
+        })
+    ];
+    
+    return response()->json($debug, 200, [], JSON_PRETTY_PRINT);
+})->middleware('auth:customer');
+
+// Authentication routes
 require __DIR__.'/auth.php';

@@ -25,7 +25,7 @@
                         <p class="text-slate-400 text-sm font-medium mb-1">Total Users</p>
                         <p class="text-slate-50 text-2xl font-bold"><?php echo e(number_format($totalUsers)); ?></p>
                         <p class="text-indigo-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+<?php echo e(round(($totalUsers / max(1, $totalUsers - 50)) * 100 - 100, 1)); ?>% from last month
+                            <i class="fas fa-arrow-<?php echo e($totalUsersGrowth >= 0 ? 'up' : 'down'); ?> mr-1 text-xs"></i><?php echo e($totalUsersGrowth >= 0 ? '+' : ''); ?><?php echo e($totalUsersGrowth); ?>% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -42,7 +42,7 @@
                         <p class="text-slate-400 text-sm font-medium mb-1">Administrators</p>
                         <p class="text-slate-50 text-2xl font-bold"><?php echo e(number_format($admins)); ?></p>
                         <p class="text-purple-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+<?php echo e($admins > 0 ? round(($admins / max(1, $admins - 1)) * 100 - 100, 1) : 0); ?>% this month
+                            <i class="fas fa-arrow-<?php echo e($adminsGrowth >= 0 ? 'up' : 'down'); ?> mr-1 text-xs"></i><?php echo e($adminsGrowth >= 0 ? '+' : ''); ?><?php echo e($adminsGrowth); ?>% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -59,7 +59,7 @@
                         <p class="text-slate-400 text-sm font-medium mb-1">Staff</p>
                         <p class="text-slate-50 text-2xl font-bold"><?php echo e(number_format($staff)); ?></p>
                         <p class="text-indigo-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+<?php echo e($staff > 0 ? round(($staff / max(1, $staff - 2)) * 100 - 100, 1) : 0); ?>% this month
+                            <i class="fas fa-arrow-<?php echo e($staffGrowth >= 0 ? 'up' : 'down'); ?> mr-1 text-xs"></i><?php echo e($staffGrowth >= 0 ? '+' : ''); ?><?php echo e($staffGrowth); ?>% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -76,7 +76,7 @@
                         <p class="text-slate-400 text-sm font-medium mb-1">Customers</p>
                         <p class="text-slate-50 text-2xl font-bold"><?php echo e(number_format($customers)); ?></p>
                         <p class="text-purple-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+<?php echo e($customers > 0 ? round(($customers / max(1, $customers - 50)) * 100 - 100, 1) : 0); ?>% from last month
+                            <i class="fas fa-arrow-<?php echo e($customersGrowth >= 0 ? 'up' : 'down'); ?> mr-1 text-xs"></i><?php echo e($customersGrowth >= 0 ? '+' : ''); ?><?php echo e($customersGrowth); ?>% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -136,16 +136,46 @@
                         View all
                     </a>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-3">
                     <?php $__empty_1 = true; $__currentLoopData = $recentAnnouncements; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $announcement): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-indigo-500">
-                            <div class="w-2 h-2 bg-indigo-500 rounded-full mt-2"></div>
-                            <div class="flex-1">
-                                <h4 class="text-slate-50 font-medium"><?php echo e($announcement->title); ?></h4>
-                                <p class="text-slate-400 text-sm"><?php echo e(Str::limit($announcement->message, 60)); ?></p>
-                                <p class="text-slate-500 text-xs mt-1"><?php echo e($announcement->created_at->diffForHumans()); ?></p>
+                        <div class="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:bg-slate-750 transition-colors duration-200">
+                            <div class="flex items-start space-x-3">
+                                <!-- Simple Action Icon -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-6 h-6 rounded flex items-center justify-center text-white text-xs bg-indigo-500">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Content -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-medium text-slate-300">
+                                            <?php echo e($announcement->title); ?>
+
+                                        </span>
+                                        <span class="text-xs text-slate-500">
+                                            <?php echo e($announcement->created_at->diffForHumans()); ?>
+
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Description -->
+                                    <div class="mb-2">
+                                        <div class="text-slate-200 text-sm line-clamp-2">
+                                            <?php echo e(Str::limit($announcement->message, 60)); ?>
+
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Footer -->
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span class="font-medium"><?php echo e($announcement->createdBy ? $announcement->createdBy->name : 'System'); ?></span>
+                                        <span><?php echo e($announcement->created_at->format('H:i')); ?></span>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="px-2 py-1 bg-indigo-500/20 text-indigo-500 text-xs rounded-full">Active</span>
                         </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <div class="flex items-center justify-center p-8 text-slate-400">
@@ -158,45 +188,44 @@
                 </div>
             </div>
 
-            <!-- Audit Log -->
+            <!-- Recent Activity -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-semibold text-slate-50">Audit Log</h3>
-                    <button class="text-sky-400 hover:text-sky-300 text-sm font-medium">
+                    <h3 class="text-xl font-semibold text-slate-50">Recent Activity</h3>
+                    <a href="<?php echo e(route('superadmin.audit-logs.index')); ?>" class="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
                         View all
-                    </button>
+                    </a>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-sign-in-alt text-emerald-500 text-sm"></i>
+                    <?php $__empty_1 = true; $__currentLoopData = $recentAuditLogs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $log): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php if (isset($component)) { $__componentOriginalfb4ad35b1696b15efc82b5ab44443a78 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalfb4ad35b1696b15efc82b5ab44443a78 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.dashboard-audit-log-item','data' => ['log' => $log]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('dashboard-audit-log-item'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['log' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($log)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalfb4ad35b1696b15efc82b5ab44443a78)): ?>
+<?php $attributes = $__attributesOriginalfb4ad35b1696b15efc82b5ab44443a78; ?>
+<?php unset($__attributesOriginalfb4ad35b1696b15efc82b5ab44443a78); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalfb4ad35b1696b15efc82b5ab44443a78)): ?>
+<?php $component = $__componentOriginalfb4ad35b1696b15efc82b5ab44443a78; ?>
+<?php unset($__componentOriginalfb4ad35b1696b15efc82b5ab44443a78); ?>
+<?php endif; ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <div class="flex items-center justify-center p-8 text-slate-400">
+                            <div class="text-center">
+                                <i class="fas fa-history text-4xl mb-2"></i>
+                                <p>No recent activity</p>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">User Login</h4>
-                            <p class="text-slate-400 text-sm">Admin John Doe logged in from 192.168.1.100</p>
-                            <p class="text-slate-500 text-xs mt-1">5 minutes ago</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-indigo-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-user-cog text-indigo-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Role Change</h4>
-                            <p class="text-slate-400 text-sm">Jane Smith promoted to Administrator</p>
-                            <p class="text-slate-500 text-xs mt-1">1 hour ago</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-shield-alt text-red-500 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Security Event</h4>
-                            <p class="text-slate-400 text-sm">Failed login attempt from suspicious IP</p>
-                            <p class="text-slate-500 text-xs mt-1">2 hours ago</p>
-                        </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -207,21 +236,54 @@
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-semibold text-slate-50">Latest Registered Users</h3>
-                    <a href="<?php echo e(route('superadmin.users.index')); ?>" class="text-sky-400 hover:text-sky-300 text-sm font-medium">
+                    <a href="<?php echo e(route('superadmin.users.index')); ?>" class="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
                         View all
                     </a>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-3">
                     <?php $__empty_1 = true; $__currentLoopData = $recentUsers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <div class="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors group">
-                            <img src="https://ui-avatars.com/api/?name=<?php echo e(urlencode($user->name)); ?>&background=<?php echo e($user->role->name === 'administrator' ? '38BDF8' : ($user->role->name === 'staff' ? '22C55E' : 'FBBF24')); ?>&color=fff&size=40&font-size=0.6" 
-                                 alt="<?php echo e($user->name); ?>" class="w-10 h-10 rounded-full ring-2 <?php echo e($user->role->name === 'administrator' ? 'ring-sky-400' : ($user->role->name === 'staff' ? 'ring-emerald-500' : 'ring-amber-400')); ?>">
-                            <div class="flex-1">
-                                <h4 class="text-slate-50 font-medium"><?php echo e($user->name); ?></h4>
-                                <p class="text-slate-400 text-sm"><?php echo e($user->email); ?></p>
-                                <p class="text-slate-500 text-xs mt-1">Joined <?php echo e($user->created_at->diffForHumans()); ?></p>
+                        <div class="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:bg-slate-750 transition-colors duration-200">
+                            <div class="flex items-start space-x-3">
+                                <!-- Simple Action Icon -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-6 h-6 rounded flex items-center justify-center text-white text-xs
+                                        <?php if($user->role->name === 'administrator'): ?> bg-indigo-500
+                                        <?php elseif($user->role->name === 'staff'): ?> bg-emerald-500
+                                        <?php else: ?> bg-amber-500
+                                        <?php endif; ?>">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Content -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-medium text-slate-300">
+                                            <?php echo e($user->name); ?>
+
+                                        </span>
+                                        <span class="text-xs text-slate-500">
+                                            <?php echo e($user->created_at->diffForHumans()); ?>
+
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Description -->
+                                    <div class="mb-2">
+                                        <div class="text-slate-200 text-sm line-clamp-2">
+                                            <?php echo e($user->email); ?>
+
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Footer -->
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span class="font-medium"><?php echo e(ucfirst($user->role->name)); ?></span>
+                                        <span><?php echo e($user->created_at->format('H:i')); ?></span>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="px-2 py-1 <?php echo e($user->role->name === 'administrator' ? 'bg-indigo-500/20 text-indigo-400' : ($user->role->name === 'staff' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-400')); ?> text-xs rounded-full"><?php echo e(ucfirst($user->role->name)); ?></span>
                         </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <div class="flex items-center justify-center p-8 text-slate-400">
@@ -238,41 +300,59 @@
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-semibold text-slate-50">Role Changes</h3>
-                    <button class="text-sky-400 hover:text-sky-300 text-sm font-medium">
+                    <a href="<?php echo e(route('superadmin.audit-logs.index')); ?>" class="text-sky-400 hover:text-sky-300 text-sm font-medium">
                         View all
-                    </button>
+                    </a>
                 </div>
-                <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-indigo-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-arrow-up text-indigo-400 text-sm"></i>
+                <div class="space-y-3">
+                    <?php $__empty_1 = true; $__currentLoopData = $roleChanges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $change): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <div class="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:bg-slate-750 transition-colors duration-200">
+                            <div class="flex items-start space-x-3">
+                                <!-- Simple Action Icon -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-6 h-6 rounded flex items-center justify-center text-white text-xs bg-amber-500">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Content -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-medium text-slate-300">
+                                            <?php echo e($change['title']); ?>
+
+                                        </span>
+                                        <span class="text-xs text-slate-500">
+                                            <?php echo e($change['time']); ?>
+
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Description -->
+                                    <div class="mb-2">
+                                        <div class="text-slate-200 text-sm line-clamp-2">
+                                            <?php echo e($change['description']); ?>
+
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Footer -->
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span class="font-medium"><?php echo e($change['admin']); ?></span>
+                                        <span><?php echo e(now()->format('H:i')); ?></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Promotion</h4>
-                            <p class="text-slate-400 text-sm">Admin John promoted Staff Jane to Administrator</p>
-                            <p class="text-slate-500 text-xs mt-1">1 hour ago</p>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <div class="flex items-center justify-center p-8 text-slate-400">
+                            <div class="text-center">
+                                <i class="fas fa-exchange-alt text-4xl mb-2"></i>
+                                <p>No role changes yet</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-user-plus text-emerald-500 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">New Assignment</h4>
-                            <p class="text-slate-400 text-sm">Customer Mike assigned to Staff Robert</p>
-                            <p class="text-slate-500 text-xs mt-1">3 hours ago</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-exchange-alt text-amber-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Role Transfer</h4>
-                            <p class="text-slate-400 text-sm">Staff Sarah transferred to different department</p>
-                            <p class="text-slate-500 text-xs mt-1">1 day ago</p>
-                        </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -281,17 +361,17 @@
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
             <h3 class="text-xl font-semibold text-slate-50 mb-6">Quick Actions</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 hover:scale-105">
+                <a href="<?php echo e(route('superadmin.users.create')); ?>" class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 bg-sky-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-user-plus text-sky-400"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-slate-50 font-medium group-hover:text-white">Add Administrator</h4>
-                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Create new admin account</p>
+                        <h4 class="text-slate-50 font-medium group-hover:text-white">Add User</h4>
+                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Create new user account</p>
                     </div>
-                </button>
+                </a>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-indigo-500 hover:border-indigo-400 transition-all duration-300 hover:scale-105">
+                <a href="<?php echo e(route('superadmin.announcements.create')); ?>" class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-indigo-500 hover:border-indigo-400 transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-bullhorn text-indigo-400"></i>
                     </div>
@@ -299,9 +379,9 @@
                         <h4 class="text-slate-50 font-medium group-hover:text-white">Send Announcement</h4>
                         <p class="text-slate-400 text-sm group-hover:text-slate-200">Notify all users</p>
                     </div>
-                </button>
+                </a>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-emerald-500 hover:border-emerald-400 transition-all duration-300 hover:scale-105">
+                <a href="<?php echo e(route('superadmin.settings.index')); ?>" class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-emerald-500 hover:border-emerald-400 transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-cog text-emerald-500"></i>
                     </div>
@@ -309,17 +389,17 @@
                         <h4 class="text-slate-50 font-medium group-hover:text-white">Manage Settings</h4>
                         <p class="text-slate-400 text-sm group-hover:text-slate-200">System configuration</p>
                     </div>
-                </button>
+                </a>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-purple-500 hover:border-purple-400 transition-all duration-300 hover:scale-105">
+                <a href="<?php echo e(route('superadmin.audit-logs.index')); ?>" class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-purple-500 hover:border-purple-400 transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-shield-alt text-purple-400"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-slate-50 font-medium group-hover:text-white">System Health</h4>
-                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Monitor system status</p>
+                        <h4 class="text-slate-50 font-medium group-hover:text-white">Audit Logs</h4>
+                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Monitor system activity</p>
                     </div>
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -558,7 +638,7 @@
             const usersSparkline = new ApexCharts(document.querySelector("#usersSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: <?php echo json_encode(array_values($userGrowthData), 15, 512) ?>
+                    data: <?php echo json_encode($sparklineData, 15, 512) ?>
                 }],
                 colors: ['#6366F1']
             });
@@ -567,7 +647,7 @@
             const adminsSparkline = new ApexCharts(document.querySelector("#adminsSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [<?php echo e($admins > 0 ? $admins - 1 : 0); ?>, <?php echo e($admins > 0 ? $admins - 1 : 0); ?>, <?php echo e($admins > 0 ? $admins - 1 : 0); ?>, <?php echo e($admins > 0 ? $admins - 1 : 0); ?>, <?php echo e($admins > 0 ? $admins - 1 : 0); ?>, <?php echo e($admins); ?>]
+                    data: <?php echo json_encode($adminsSparklineData, 15, 512) ?>
                 }],
                 colors: ['#8B5CF6']
             });
@@ -576,7 +656,7 @@
             const staffSparkline = new ApexCharts(document.querySelector("#staffSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [<?php echo e($staff > 0 ? $staff - 2 : 0); ?>, <?php echo e($staff > 0 ? $staff - 1 : 0); ?>, <?php echo e($staff > 0 ? $staff - 1 : 0); ?>, <?php echo e($staff > 0 ? $staff - 1 : 0); ?>, <?php echo e($staff > 0 ? $staff - 1 : 0); ?>, <?php echo e($staff); ?>]
+                    data: <?php echo json_encode($staffSparklineData, 15, 512) ?>
                 }],
                 colors: ['#A855F7']
             });
@@ -585,7 +665,7 @@
             const customersSparkline = new ApexCharts(document.querySelector("#customersSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: <?php echo json_encode(array_values($userGrowthData), 15, 512) ?>
+                    data: <?php echo json_encode($customersSparklineData, 15, 512) ?>
                 }],
                 colors: ['#8B5CF6']
             });
@@ -675,4 +755,8 @@
         }
     </style>
 <?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<!-- Dashboard audit logs widget -->
+<?php $__env->stopPush(); ?>
 <?php echo $__env->make('layouts.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\Laundry Sytem\Thesis\resources\views/dashboard/superadmin.blade.php ENDPATH**/ ?>

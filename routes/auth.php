@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\CustomerAuthController;
+use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use Illuminate\Support\Facades\Route;
 
-// Registration Routes
+// Registration Routes (Customer only)
 Route::get('/register', [RegisteredUserController::class, 'create'])
     ->middleware('guest')
     ->name('register');
@@ -14,18 +16,31 @@ Route::get('/register', [RegisteredUserController::class, 'create'])
 Route::post('/register', [RegisteredUserController::class, 'store'])
     ->middleware('guest');
 
-// Login Routes
-Route::get('/login', [AuthenticatedSessionController::class, 'create'])
+// Customer Login Routes
+Route::get('/login', [CustomerAuthController::class, 'create'])
     ->middleware('guest')
     ->name('login');
 
-Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+Route::post('/login', [CustomerAuthController::class, 'store'])
+    ->middleware('guest')
+    ->name('customer.login');
+
+// Admin Login Routes
+Route::get('/admin/login', [AdminAuthController::class, 'create'])
+    ->middleware('guest')
+    ->name('admin.login');
+
+Route::post('/admin/login', [AdminAuthController::class, 'store'])
     ->middleware('guest');
 
-// Logout Route
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-    ->middleware('auth')
+// Logout Routes
+Route::post('/logout', [CustomerAuthController::class, 'destroy'])
+    ->middleware('auth:customer')
     ->name('logout');
+
+Route::post('/admin/logout', [AdminAuthController::class, 'destroy'])
+    ->middleware('auth:admin')
+    ->name('admin.logout');
 
 // Password Reset Routes
 Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])

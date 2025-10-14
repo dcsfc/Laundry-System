@@ -68,4 +68,20 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    /**
+     * Check if user is an admin user (superadmin, administrator, staff)
+     */
+    public function isAdminUser(): bool
+    {
+        return in_array($this->role->name ?? '', ['superadmin', 'administrator', 'staff']);
+    }
+
+    /**
+     * Check if user is a customer
+     */
+    public function isCustomer(): bool
+    {
+        return ($this->role->name ?? '') === 'customer';
+    }
 }

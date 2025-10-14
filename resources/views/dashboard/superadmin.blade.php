@@ -25,7 +25,7 @@
                         <p class="text-slate-400 text-sm font-medium mb-1">Total Users</p>
                         <p class="text-slate-50 text-2xl font-bold">{{ number_format($totalUsers) }}</p>
                         <p class="text-indigo-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ round(($totalUsers / max(1, $totalUsers - 50)) * 100 - 100, 1) }}% from last month
+                            <i class="fas fa-arrow-{{ $totalUsersGrowth >= 0 ? 'up' : 'down' }} mr-1 text-xs"></i>{{ $totalUsersGrowth >= 0 ? '+' : '' }}{{ $totalUsersGrowth }}% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -42,7 +42,7 @@
                         <p class="text-slate-400 text-sm font-medium mb-1">Administrators</p>
                         <p class="text-slate-50 text-2xl font-bold">{{ number_format($admins) }}</p>
                         <p class="text-purple-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $admins > 0 ? round(($admins / max(1, $admins - 1)) * 100 - 100, 1) : 0 }}% this month
+                            <i class="fas fa-arrow-{{ $adminsGrowth >= 0 ? 'up' : 'down' }} mr-1 text-xs"></i>{{ $adminsGrowth >= 0 ? '+' : '' }}{{ $adminsGrowth }}% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -59,7 +59,7 @@
                         <p class="text-slate-400 text-sm font-medium mb-1">Staff</p>
                         <p class="text-slate-50 text-2xl font-bold">{{ number_format($staff) }}</p>
                         <p class="text-indigo-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $staff > 0 ? round(($staff / max(1, $staff - 2)) * 100 - 100, 1) : 0 }}% this month
+                            <i class="fas fa-arrow-{{ $staffGrowth >= 0 ? 'up' : 'down' }} mr-1 text-xs"></i>{{ $staffGrowth >= 0 ? '+' : '' }}{{ $staffGrowth }}% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -76,7 +76,7 @@
                         <p class="text-slate-400 text-sm font-medium mb-1">Customers</p>
                         <p class="text-slate-50 text-2xl font-bold">{{ number_format($customers) }}</p>
                         <p class="text-purple-400 text-sm font-medium mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1 text-xs"></i>+{{ $customers > 0 ? round(($customers / max(1, $customers - 50)) * 100 - 100, 1) : 0 }}% from last month
+                            <i class="fas fa-arrow-{{ $customersGrowth >= 0 ? 'up' : 'down' }} mr-1 text-xs"></i>{{ $customersGrowth >= 0 ? '+' : '' }}{{ $customersGrowth }}% from last month
                         </p>
                     </div>
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -136,16 +136,43 @@
                         View all
                     </a>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-3">
                     @forelse($recentAnnouncements as $announcement)
-                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 border-indigo-500">
-                            <div class="w-2 h-2 bg-indigo-500 rounded-full mt-2"></div>
-                            <div class="flex-1">
-                                <h4 class="text-slate-50 font-medium">{{ $announcement->title }}</h4>
-                                <p class="text-slate-400 text-sm">{{ Str::limit($announcement->message, 60) }}</p>
-                                <p class="text-slate-500 text-xs mt-1">{{ $announcement->created_at->diffForHumans() }}</p>
+                        <div class="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:bg-slate-750 transition-colors duration-200">
+                            <div class="flex items-start space-x-3">
+                                <!-- Simple Action Icon -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-6 h-6 rounded flex items-center justify-center text-white text-xs bg-indigo-500">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Content -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-medium text-slate-300">
+                                            {{ $announcement->title }}
+                                        </span>
+                                        <span class="text-xs text-slate-500">
+                                            {{ $announcement->created_at->diffForHumans() }}
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Description -->
+                                    <div class="mb-2">
+                                        <div class="text-slate-200 text-sm line-clamp-2">
+                                            {{ Str::limit($announcement->message, 60) }}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Footer -->
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span class="font-medium">{{ $announcement->createdBy ? $announcement->createdBy->name : 'System' }}</span>
+                                        <span>{{ $announcement->created_at->format('H:i') }}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="px-2 py-1 bg-indigo-500/20 text-indigo-500 text-xs rounded-full">Active</span>
                         </div>
                     @empty
                         <div class="flex items-center justify-center p-8 text-slate-400">
@@ -158,45 +185,25 @@
                 </div>
             </div>
 
-            <!-- Audit Log -->
+            <!-- Recent Activity -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-semibold text-slate-50">Audit Log</h3>
-                    <button class="text-sky-400 hover:text-sky-300 text-sm font-medium">
+                    <h3 class="text-xl font-semibold text-slate-50">Recent Activity</h3>
+                    <a href="{{ route('superadmin.audit-logs.index') }}" class="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
                         View all
-                    </button>
+                    </a>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-sign-in-alt text-emerald-500 text-sm"></i>
+                    @forelse($recentAuditLogs as $log)
+                        <x-dashboard-audit-log-item :log="$log" />
+                    @empty
+                        <div class="flex items-center justify-center p-8 text-slate-400">
+                            <div class="text-center">
+                                <i class="fas fa-history text-4xl mb-2"></i>
+                                <p>No recent activity</p>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">User Login</h4>
-                            <p class="text-slate-400 text-sm">Admin John Doe logged in from 192.168.1.100</p>
-                            <p class="text-slate-500 text-xs mt-1">5 minutes ago</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-indigo-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-user-cog text-indigo-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Role Change</h4>
-                            <p class="text-slate-400 text-sm">Jane Smith promoted to Administrator</p>
-                            <p class="text-slate-500 text-xs mt-1">1 hour ago</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-shield-alt text-red-500 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Security Event</h4>
-                            <p class="text-slate-400 text-sm">Failed login attempt from suspicious IP</p>
-                            <p class="text-slate-500 text-xs mt-1">2 hours ago</p>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -207,21 +214,51 @@
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-semibold text-slate-50">Latest Registered Users</h3>
-                    <a href="{{ route('superadmin.users.index') }}" class="text-sky-400 hover:text-sky-300 text-sm font-medium">
+                    <a href="{{ route('superadmin.users.index') }}" class="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
                         View all
                     </a>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-3">
                     @forelse($recentUsers as $user)
-                        <div class="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors group">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background={{ $user->role->name === 'administrator' ? '38BDF8' : ($user->role->name === 'staff' ? '22C55E' : 'FBBF24') }}&color=fff&size=40&font-size=0.6" 
-                                 alt="{{ $user->name }}" class="w-10 h-10 rounded-full ring-2 {{ $user->role->name === 'administrator' ? 'ring-sky-400' : ($user->role->name === 'staff' ? 'ring-emerald-500' : 'ring-amber-400') }}">
-                            <div class="flex-1">
-                                <h4 class="text-slate-50 font-medium">{{ $user->name }}</h4>
-                                <p class="text-slate-400 text-sm">{{ $user->email }}</p>
-                                <p class="text-slate-500 text-xs mt-1">Joined {{ $user->created_at->diffForHumans() }}</p>
+                        <div class="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:bg-slate-750 transition-colors duration-200">
+                            <div class="flex items-start space-x-3">
+                                <!-- Simple Action Icon -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-6 h-6 rounded flex items-center justify-center text-white text-xs
+                                        @if($user->role->name === 'administrator') bg-indigo-500
+                                        @elseif($user->role->name === 'staff') bg-emerald-500
+                                        @else bg-amber-500
+                                        @endif">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Content -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-medium text-slate-300">
+                                            {{ $user->name }}
+                                        </span>
+                                        <span class="text-xs text-slate-500">
+                                            {{ $user->created_at->diffForHumans() }}
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Description -->
+                                    <div class="mb-2">
+                                        <div class="text-slate-200 text-sm line-clamp-2">
+                                            {{ $user->email }}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Footer -->
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span class="font-medium">{{ ucfirst($user->role->name) }}</span>
+                                        <span>{{ $user->created_at->format('H:i') }}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="px-2 py-1 {{ $user->role->name === 'administrator' ? 'bg-indigo-500/20 text-indigo-400' : ($user->role->name === 'staff' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-400') }} text-xs rounded-full">{{ ucfirst($user->role->name) }}</span>
                         </div>
                     @empty
                         <div class="flex items-center justify-center p-8 text-slate-400">
@@ -238,41 +275,56 @@
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-semibold text-slate-50">Role Changes</h3>
-                    <button class="text-sky-400 hover:text-sky-300 text-sm font-medium">
+                    <a href="{{ route('superadmin.audit-logs.index') }}" class="text-sky-400 hover:text-sky-300 text-sm font-medium">
                         View all
-                    </button>
+                    </a>
                 </div>
-                <div class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-indigo-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-arrow-up text-indigo-400 text-sm"></i>
+                <div class="space-y-3">
+                    @forelse($roleChanges as $change)
+                        <div class="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:bg-slate-750 transition-colors duration-200">
+                            <div class="flex items-start space-x-3">
+                                <!-- Simple Action Icon -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-6 h-6 rounded flex items-center justify-center text-white text-xs bg-amber-500">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Content -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-medium text-slate-300">
+                                            {{ $change['title'] }}
+                                        </span>
+                                        <span class="text-xs text-slate-500">
+                                            {{ $change['time'] }}
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Description -->
+                                    <div class="mb-2">
+                                        <div class="text-slate-200 text-sm line-clamp-2">
+                                            {{ $change['description'] }}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Footer -->
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span class="font-medium">{{ $change['admin'] }}</span>
+                                        <span>{{ now()->format('H:i') }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Promotion</h4>
-                            <p class="text-slate-400 text-sm">Admin John promoted Staff Jane to Administrator</p>
-                            <p class="text-slate-500 text-xs mt-1">1 hour ago</p>
+                    @empty
+                        <div class="flex items-center justify-center p-8 text-slate-400">
+                            <div class="text-center">
+                                <i class="fas fa-exchange-alt text-4xl mb-2"></i>
+                                <p>No role changes yet</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-user-plus text-emerald-500 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">New Assignment</h4>
-                            <p class="text-slate-400 text-sm">Customer Mike assigned to Staff Robert</p>
-                            <p class="text-slate-500 text-xs mt-1">3 hours ago</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                        <div class="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-exchange-alt text-amber-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-slate-50 font-medium">Role Transfer</h4>
-                            <p class="text-slate-400 text-sm">Staff Sarah transferred to different department</p>
-                            <p class="text-slate-500 text-xs mt-1">1 day ago</p>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -281,17 +333,17 @@
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
             <h3 class="text-xl font-semibold text-slate-50 mb-6">Quick Actions</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 hover:scale-105">
+                <a href="{{ route('superadmin.users.create') }}" class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 bg-sky-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-user-plus text-sky-400"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-slate-50 font-medium group-hover:text-white">Add Administrator</h4>
-                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Create new admin account</p>
+                        <h4 class="text-slate-50 font-medium group-hover:text-white">Add User</h4>
+                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Create new user account</p>
                     </div>
-                </button>
+                </a>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-indigo-500 hover:border-indigo-400 transition-all duration-300 hover:scale-105">
+                <a href="{{ route('superadmin.announcements.create') }}" class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-indigo-500 hover:border-indigo-400 transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-bullhorn text-indigo-400"></i>
                     </div>
@@ -299,9 +351,9 @@
                         <h4 class="text-slate-50 font-medium group-hover:text-white">Send Announcement</h4>
                         <p class="text-slate-400 text-sm group-hover:text-slate-200">Notify all users</p>
                     </div>
-                </button>
+                </a>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-emerald-500 hover:border-emerald-400 transition-all duration-300 hover:scale-105">
+                <a href="{{ route('superadmin.settings.index') }}" class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-emerald-500 hover:border-emerald-400 transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-cog text-emerald-500"></i>
                     </div>
@@ -309,17 +361,17 @@
                         <h4 class="text-slate-50 font-medium group-hover:text-white">Manage Settings</h4>
                         <p class="text-slate-400 text-sm group-hover:text-slate-200">System configuration</p>
                     </div>
-                </button>
+                </a>
 
-                <button class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-purple-500 hover:border-purple-400 transition-all duration-300 hover:scale-105">
+                <a href="{{ route('superadmin.audit-logs.index') }}" class="group flex items-center gap-3 p-4 bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-purple-500 hover:border-purple-400 transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-shield-alt text-purple-400"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-slate-50 font-medium group-hover:text-white">System Health</h4>
-                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Monitor system status</p>
+                        <h4 class="text-slate-50 font-medium group-hover:text-white">Audit Logs</h4>
+                        <p class="text-slate-400 text-sm group-hover:text-slate-200">Monitor system activity</p>
                     </div>
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -558,7 +610,7 @@
             const usersSparkline = new ApexCharts(document.querySelector("#usersSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: @json(array_values($userGrowthData))
+                    data: @json($sparklineData)
                 }],
                 colors: ['#6366F1']
             });
@@ -567,7 +619,7 @@
             const adminsSparkline = new ApexCharts(document.querySelector("#adminsSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [{{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins > 0 ? $admins - 1 : 0 }}, {{ $admins }}]
+                    data: @json($adminsSparklineData)
                 }],
                 colors: ['#8B5CF6']
             });
@@ -576,7 +628,7 @@
             const staffSparkline = new ApexCharts(document.querySelector("#staffSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: [{{ $staff > 0 ? $staff - 2 : 0 }}, {{ $staff > 0 ? $staff - 1 : 0 }}, {{ $staff > 0 ? $staff - 1 : 0 }}, {{ $staff > 0 ? $staff - 1 : 0 }}, {{ $staff > 0 ? $staff - 1 : 0 }}, {{ $staff }}]
+                    data: @json($staffSparklineData)
                 }],
                 colors: ['#A855F7']
             });
@@ -585,7 +637,7 @@
             const customersSparkline = new ApexCharts(document.querySelector("#customersSparkline"), {
                 ...sparklineConfig,
                 series: [{
-                    data: @json(array_values($userGrowthData))
+                    data: @json($customersSparklineData)
                 }],
                 colors: ['#8B5CF6']
             });
@@ -675,3 +727,7 @@
         }
     </style>
 @endsection
+
+@push('scripts')
+<!-- Dashboard audit logs widget -->
+@endpush
