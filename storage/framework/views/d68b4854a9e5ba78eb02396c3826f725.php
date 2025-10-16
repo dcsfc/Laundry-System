@@ -3,27 +3,29 @@
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'columns' => [],
-    'data' => [],
+    'items' => [],  // Renamed from 'data' to 'items' to avoid conflict with data-* attributes
     'actions' => [],
     'bulkActions' => false,
     'searchable' => true,
     'sortable' => true,
     'pagination' => true,
     'pageSize' => 10,
-    'currentPage' => 1,
     'pageSizeOptions' => [10, 25, 50, 100],
+    'title' => 'Data Table',
+    'description' => 'Manage your data records',
     'emptyMessage' => 'No data found',
+    'emptyDescription' => 'Start by adding your first item to the system.',
+    'colorScheme' => 'sky',
+    'showRoleFilter' => false,
+    'availableRoles' => [],
+    'customClass' => 'bg-slate-800 text-slate-200',
     'hoverEffects' => true,
     'alternatingRows' => true,
-    'stickyHeader' => false,
-    'customClass' => 'bg-slate-800 text-slate-200',
-    'title' => null,
-    'description' => null,
+    'stickyHeader' => true,
     'addButton' => false,
-    'addButtonLabel' => 'Add New',
-    'addButtonAction' => 'addNew',
-    'formType' => null,
-    'colorScheme' => 'sky',
+    'addButtonLabel' => 'Add New Item',
+    'addButtonAction' => 'addItem',
+    'formType' => 'default'
 ]));
 
 foreach ($attributes->all() as $__key => $__value) {
@@ -41,27 +43,29 @@ unset($__newAttributes);
 
 foreach (array_filter(([
     'columns' => [],
-    'data' => [],
+    'items' => [],  // Renamed from 'data' to 'items' to avoid conflict with data-* attributes
     'actions' => [],
     'bulkActions' => false,
     'searchable' => true,
     'sortable' => true,
     'pagination' => true,
     'pageSize' => 10,
-    'currentPage' => 1,
     'pageSizeOptions' => [10, 25, 50, 100],
+    'title' => 'Data Table',
+    'description' => 'Manage your data records',
     'emptyMessage' => 'No data found',
+    'emptyDescription' => 'Start by adding your first item to the system.',
+    'colorScheme' => 'sky',
+    'showRoleFilter' => false,
+    'availableRoles' => [],
+    'customClass' => 'bg-slate-800 text-slate-200',
     'hoverEffects' => true,
     'alternatingRows' => true,
-    'stickyHeader' => false,
-    'customClass' => 'bg-slate-800 text-slate-200',
-    'title' => null,
-    'description' => null,
+    'stickyHeader' => true,
     'addButton' => false,
-    'addButtonLabel' => 'Add New',
-    'addButtonAction' => 'addNew',
-    'formType' => null,
-    'colorScheme' => 'sky',
+    'addButtonLabel' => 'Add New Item',
+    'addButtonAction' => 'addItem',
+    'formType' => 'default'
 ]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
@@ -75,90 +79,105 @@ foreach ($attributes->all() as $__key => $__value) {
 unset($__defined_vars, $__key, $__value); ?>
 
 <?php
-// Ensure data is always an array
-if (!is_array($data)) {
-    $data = collect($data)->toArray();
-}
-
-// Process columns to ensure they have proper structure
-$processedColumns = collect($columns)->map(function($column) {
-    if (is_string($column)) {
-        return ['key' => $column, 'label' => ucfirst(str_replace('_', ' ', $column)), 'sortable' => true];
+    // CRITICAL: Ensure items are properly handled
+    // Process the items
+    if (is_array($items)) {
+        $tableData = $items;
+    } elseif ($items instanceof \Illuminate\Support\Collection) {
+        $tableData = $items->toArray();
+    } else {
+        $tableData = [];
     }
-    return array_merge(['key' => 'id', 'label' => 'Column', 'sortable' => true], $column);
-})->toArray();
-
-// Process actions
-$processedActions = collect($actions)->map(function($action) {
-    if (is_string($action)) {
-        return ['key' => $action, 'label' => ucfirst($action), 'icon' => 'fas fa-edit'];
-    }
-    return array_merge(['key' => 'action', 'label' => 'Action', 'icon' => 'fas fa-edit'], $action);
-})->toArray();
+    
+    // Color scheme mapping
+    $colorClasses = [
+        'sky' => [
+            'primary' => 'from-sky-600 to-cyan-600',
+            'accent' => 'sky-400',
+            'hover' => 'sky-500',
+            'bg' => 'sky-500/20',
+            'border' => 'sky-500/30'
+        ],
+        'indigo' => [
+            'primary' => 'from-indigo-600 to-purple-600',
+            'accent' => 'indigo-400',
+            'hover' => 'indigo-500',
+            'bg' => 'indigo-500/20',
+            'border' => 'indigo-500/30'
+        ],
+        'emerald' => [
+            'primary' => 'from-emerald-500 to-teal-600',
+            'accent' => 'emerald-400',
+            'hover' => 'emerald-500',
+            'bg' => 'emerald-500/20',
+            'border' => 'emerald-500/30'
+        ]
+    ];
+    
+    $colors = $colorClasses[$colorScheme] ?? $colorClasses['sky'];
 ?>
 
-<div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-    <?php if($title || $description || $addButton): ?>
-    <div class="px-6 py-4 border-b border-slate-700">
-        <div class="flex items-center justify-between">
-            <div>
-                <?php if($title): ?>
-                <h3 class="text-lg font-semibold text-slate-50"><?php echo e($title); ?></h3>
-                <?php endif; ?>
-                <?php if($description): ?>
-                <p class="text-sm text-slate-400 mt-1"><?php echo e($description); ?></p>
-                <?php endif; ?>
-            </div>
-            <?php if($addButton): ?>
-            <button class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                <i class="fas fa-plus mr-2"></i><?php echo e($addButtonLabel); ?>
+<!-- DEBUG INFO -->
+<!-- RECEIVED $items: type=<?php echo e(gettype($items)); ?>, count=<?php echo e(is_countable($items) ? count($items) : 'N/A'); ?> -->
+<!-- PROCESSED $tableData: count=<?php echo e(count($tableData)); ?> -->
+<!-- First item: <?php echo e(count($tableData) > 0 ? substr(json_encode($tableData[0]), 0, 200) : 'EMPTY'); ?> -->
+<!-- END DEBUG -->
 
-            </button>
+<div class="table-container <?php echo e($customClass); ?>" 
+     x-data="dataTable(<?php echo e(json_encode($tableData)); ?>, <?php echo e(json_encode($columns)); ?>, <?php echo e(json_encode($actions)); ?>, <?php echo e($pageSize); ?>)"
+     data-color-scheme="<?php echo e($colorScheme); ?>"
+     data-datatable>
+
+    <!-- Header -->
+    <div class="table-header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="header-icon">
+                    <i class="fas fa-table text-<?php echo e($colors['accent']); ?>"></i>
+                </div>
+                <div class="header-text">
+                    <h2 class="table-title"><?php echo e($title); ?></h2>
+                    <p class="table-description"><?php echo e($description); ?></p>
+                </div>
+            </div>
+
+            <?php if($addButton): ?>
+            <div class="header-actions">
+                <button class="btn btn-primary bg-gradient-to-r <?php echo e($colors['primary']); ?> hover:opacity-90" 
+                        @click="<?php echo e($addButtonAction); ?>()">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <?php echo e($addButtonLabel); ?>
+
+                </button>
+            </div>
             <?php endif; ?>
         </div>
     </div>
-    <?php endif; ?>
 
+    <!-- Search and Filters -->
     <?php if($searchable): ?>
-    <div class="px-6 py-4 border-b border-slate-700">
-        <div class="flex items-center gap-4">
-            <div class="relative flex-1 max-w-md">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fas fa-search text-slate-400"></i>
-                </div>
-                <input type="text" 
-                       class="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-sky-400 focus:border-sky-400" 
-                       placeholder="Search...">
-            </div>
-            <select class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-200 focus:ring-2 focus:ring-sky-400 focus:border-sky-400">
-                <?php $__currentLoopData = $pageSizeOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <option value="<?php echo e($size); ?>"><?php echo e($size); ?> per page</option>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </select>
-        </div>
-    </div>
+        <?php echo $__env->make('components.tables.search-filters', [
+            'showRoleFilter' => $showRoleFilter,
+            'availableRoles' => $availableRoles,
+            'colorScheme' => $colorScheme
+        ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-slate-700/50">
+    <!-- Table -->
+    <div class="table-scroll-container">
+        <table class="data-table">
+            <thead class="table-head">
                 <tr>
-                    <?php if($bulkActions): ?>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        <input type="checkbox" class="rounded border-slate-600 bg-slate-700 text-sky-500 focus:ring-sky-400">
-                    </th>
-                    <?php endif; ?>
-                    
-                    <?php $__currentLoopData = $processedColumns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $column): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        <?php if($sortable && ($column['sortable'] ?? true)): ?>
-                        <button class="flex items-center gap-1 hover:text-slate-100 transition-colors">
+                    <!-- Headers with sorting -->
+                    <?php $__currentLoopData = $columns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $column): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <th class="table-header-cell">
+                        <?php if($sortable): ?>
+                        <button type="button" class="sort-button" @click="sort('<?php echo e($column['key']); ?>')">
                             <?php echo e($column['label']); ?>
 
-                            <div class="flex flex-col">
-                                <i class="fas fa-chevron-up text-xs opacity-50"></i>
-                                <i class="fas fa-chevron-down text-xs opacity-50"></i>
-                            </div>
+                            <?php echo $__env->make('components.tables.sort-arrows', ['column' => $column['key']], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                         </button>
                         <?php else: ?>
                         <?php echo e($column['label']); ?>
@@ -167,118 +186,61 @@ $processedActions = collect($actions)->map(function($action) {
                     </th>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     
-                    <?php if(count($processedActions) > 0): ?>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        Actions
-                    </th>
+                    <?php if($actions && count($actions) > 0): ?>
+                    <th class="actions-header">Actions</th>
                     <?php endif; ?>
                 </tr>
             </thead>
-            
-            <tbody class="divide-y divide-slate-700">
-                <?php if(count($data) > 0): ?>
-                    <?php $__currentLoopData = $data; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <tr class="hover:bg-slate-700/30 transition-colors">
-                        <?php if($bulkActions): ?>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <input type="checkbox" class="rounded border-slate-600 bg-slate-700 text-sky-500 focus:ring-sky-400">
-                        </td>
-                        <?php endif; ?>
-                        
-                        <?php $__currentLoopData = $processedColumns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $column): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                            <?php
-                                $value = data_get($row, $column['key'], 'N/A');
-                                
-                                // Format different data types
-                                if (is_array($value)) {
-                                    $value = json_encode($value);
-                                } elseif (is_object($value)) {
-                                    $value = $value->name ?? $value->id ?? 'N/A';
-                                } elseif (is_bool($value)) {
-                                    $value = $value ? 'Yes' : 'No';
-                                } elseif (is_null($value)) {
-                                    $value = 'N/A';
-                                }
-                            ?>
-                            
-                            <?php if($column['key'] === 'status'): ?>
-                                <?php
-                                    $statusColors = [
-                                        'active' => 'bg-emerald-500/20 text-emerald-400',
-                                        'inactive' => 'bg-slate-500/20 text-slate-400',
-                                        'pending' => 'bg-amber-500/20 text-amber-400',
-                                        'completed' => 'bg-sky-500/20 text-sky-400',
-                                        'cancelled' => 'bg-red-500/20 text-red-400',
-                                    ];
-                                    $statusClass = $statusColors[strtolower($value)] ?? 'bg-slate-500/20 text-slate-400';
-                                ?>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo e($statusClass); ?>">
-                                    <?php echo e(ucfirst($value)); ?>
 
-                                </span>
-                            <?php elseif(in_array($column['key'], ['created_at', 'updated_at', 'date'])): ?>
-                                <?php echo e(\Carbon\Carbon::parse($value)->format('M d, Y')); ?>
+            <tbody>
+                <!-- Loading State -->
+                <template x-if="isLoading">
+                    <?php echo $__env->make('components.tables.loading-row', [
+                        'columns' => $columns, 
+                        'bulkActions' => $bulkActions, 
+                        'actions' => $actions
+                    ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                </template>
 
-                            <?php elseif(in_array($column['key'], ['price', 'amount', 'total'])): ?>
-                                ₱<?php echo e(number_format($value, 2)); ?>
-
-                            <?php else: ?>
-                                <?php echo e($value); ?>
-
-                            <?php endif; ?>
-                        </td>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        
-                        <?php if(count($processedActions) > 0): ?>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div class="flex items-center gap-2">
-                                <?php $__currentLoopData = $processedActions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $action): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <button class="text-sky-400 hover:text-sky-300 transition-colors" 
-                                        title="<?php echo e($action['label']); ?>">
-                                    <i class="<?php echo e($action['icon']); ?>"></i>
-                                </button>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </div>
-                        </td>
-                        <?php endif; ?>
-                    </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="<?php echo e(count($processedColumns) + ($bulkActions ? 1 : 0) + (count($processedActions) > 0 ? 1 : 0)); ?>" 
-                            class="px-6 py-12 text-center">
-                            <div class="flex flex-col items-center">
-                                <i class="fas fa-inbox text-4xl text-slate-500 mb-4"></i>
-                                <h3 class="text-lg font-medium text-slate-300 mb-2">No data available</h3>
-                                <p class="text-slate-500"><?php echo e($emptyMessage); ?></p>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
+                <!-- Data Rows -->
+                <template x-for="(row, index) in paginatedData" :key="row.id || index">
+                    <?php echo $__env->make('components.tables.row', [
+                        'columns' => $columns, 
+                        'actions' => $actions, 
+                        'bulkActions' => $bulkActions,
+                        'colorScheme' => $colorScheme
+                    ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                </template>
             </tbody>
+
+            <!-- Empty State -->
+            <tfoot x-show="paginatedData.length === 0 && !isLoading">
+                <tr>
+                    <td :colspan="<?php echo e(count($columns) + (count($actions) > 0 ? 1 : 0)); ?>" class="empty-content">
+                        <div class="empty-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h3><?php echo e($emptyMessage); ?></h3>
+                        <p><?php echo e($emptyDescription); ?></p>
+                    </td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 
-    <?php if($pagination && count($data) > 10): ?>
-    <div class="px-6 py-4 border-t border-slate-700">
-        <div class="flex items-center justify-between">
-            <div class="text-sm text-slate-400">
-                Showing 1 to <?php echo e(min(10, count($data))); ?> of <?php echo e(count($data)); ?> results
-            </div>
-            <div class="flex items-center gap-2">
-                <button class="px-3 py-1 text-sm bg-slate-700 border border-slate-600 rounded text-slate-300 hover:bg-slate-600 transition-colors">
-                    Previous
-                </button>
-                <button class="px-3 py-1 text-sm bg-sky-500 text-white rounded">
-                    1
-                </button>
-                <button class="px-3 py-1 text-sm bg-slate-700 border border-slate-600 rounded text-slate-300 hover:bg-slate-600 transition-colors">
-                    Next
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Pagination -->
+    <?php if($pagination): ?>
+        <?php echo $__env->make('components.tables.pagination', [
+            'itemName' => strtolower($title),
+            'pageSizeOptions' => $pageSizeOptions,
+            'colorScheme' => $colorScheme
+        ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 </div>
+
+
+
 <?php /**PATH C:\xampp\htdocs\Laundry Sytem\Thesis\resources\views/components/data-table.blade.php ENDPATH**/ ?>

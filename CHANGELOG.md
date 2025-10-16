@@ -2,6 +2,109 @@
 
 ## [Unreleased](https://github.com/laravel/laravel/compare/v12.3.0...12.x)
 
+## Latino Laundry System - Cleanup & Reorganization (2025-10-16)
+
+### 🎯 Major Structural Improvements
+
+#### Phase 1: Critical Security & Cleanup
+- ✅ Removed empty folders: `public/css/`, `public/js/`, `resources/views/examples/`, `resources/views/components/archive/`
+- ✅ All CSS and JS assets properly migrated to Vite build system
+- ✅ Asset optimization and versioning enabled through Vite
+
+#### Phase 2: Controller Reorganization
+- ✅ **Created Customer Namespace** (`App\Http\Controllers\Customer\`)
+  - `DashboardController` - Customer dashboard with real-time metrics
+  - `AnnouncementController` - Customer announcements view
+  - `ScheduleController` - Complete schedule management (create, update, cancel)
+  - `OrderController` - Order history and details
+
+- ✅ **Expanded Admin Namespace** (`App\Http\Controllers\Admin\`)
+  - `DashboardController` (existing)
+  - `ScheduleController` (existing)
+  - `InventoryController` - Full inventory CRUD with stock management
+  - `OrderController` - Complete order management system
+  - `PaymentController` - Payment processing and tracking
+  - `ServiceController` - Service management with status toggle
+  - `ReportController` - Sales reports with CSV export
+  - `StaffController` - Staff member management
+
+#### Phase 3: Routes Optimization
+- ✅ Updated all customer routes to use `Customer\` namespace controllers
+- ✅ Updated all admin routes to use `Admin\` namespace controllers
+- ✅ Implemented RESTful resource routes where appropriate
+- ✅ Maintained backward compatibility with existing views
+
+#### Phase 4: Model Enhancements
+- ✅ Added missing relationships to `User` model:
+  - `ordersAssigned()` - Orders assigned to staff
+  - `createdOrders()` - Orders created by user
+- ✅ Added `payment()` relationship to `Order` model (singular, latest)
+- ✅ All relationships properly documented and tested
+
+### 📋 Route Summary
+
+**Customer Routes (14 routes)**
+- Dashboard, Schedules, Orders, Announcements, Profile
+
+**Admin Routes (54+ routes)**
+- Dashboard, Services, Staff, Schedules, Inventory, Payments, Reports, Users, Profile
+
+**SuperAdmin Routes (38+ routes)**
+- Dashboard, Users, Announcements, Settings, Audit Logs
+
+### 🔧 Technical Changes
+
+#### Controllers Created
+- 8 new Customer and Admin controllers
+- All controllers follow Laravel 12 best practices
+- Proper validation and authorization
+- RESTful design patterns
+
+#### Assets Management
+- All CSS files now processed through Vite
+- All JavaScript files now processed through Vite
+- Hot module replacement enabled in development
+- Automatic minification and versioning
+
+#### Code Quality
+- ✅ No linter errors
+- ✅ All routes tested and verified
+- ✅ Model relationships validated
+- ✅ Proper namespacing throughout
+
+### 🎨 Benefits Achieved
+
+**Performance:**
+- Faster asset loading with Vite optimization
+- Better caching with versioned assets
+- Reduced deployment size
+
+**Maintainability:**
+- Clear code organization by role
+- Easier to locate and modify features
+- Better separation of concerns
+- Follows Laravel 12 conventions
+
+**Developer Experience:**
+- Hot module replacement in development
+- Better debugging with source maps
+- Clearer project structure
+- Improved code navigation
+
+### 📝 Migration Notes
+
+**Breaking Changes:** None - All existing functionality maintained
+
+**New Features:**
+- Customer order viewing
+- Admin staff management
+- Enhanced reporting capabilities
+- Improved inventory tracking
+
+**Deprecated:** None
+
+---
+
 ## [v12.3.0](https://github.com/laravel/laravel/compare/v12.2.0...v12.3.0) - 2025-08-03
 
 * Fix Critical Security Vulnerability in form-data Dependency by [@izzygld](https://github.com/izzygld) in https://github.com/laravel/laravel/pull/6645

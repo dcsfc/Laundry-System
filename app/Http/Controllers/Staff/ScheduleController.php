@@ -18,41 +18,15 @@ class ScheduleController extends Controller
      */
     public function index(Request $request)
     {
-        // Get all schedules (orders) for staff management
-        $pendingSchedules = Order::with(['customer', 'service', 'approvedBy'])
+        // Get active schedules (exclude completed and cancelled by default)
+        $allSchedules = Order::with(['customer', 'service', 'approvedBy'])
+            ->whereNotIn('status', ['completed', 'cancelled'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($order) {
-                // Compose friendly datetime strings
-                $dropoff = null;
-                if ($order->dropoff_date || $order->dropoff_time) {
-                    $dateStr = $order->dropoff_date ? Carbon::parse($order->dropoff_date)->format('M j, Y') : '';
-                    $timeRaw = $order->dropoff_time;
-                    $timeStr = '';
-                    if (!empty($timeRaw)) {
-                        try {
-                            $timeStr = Carbon::parse($timeRaw)->format('g:i A');
-                        } catch (\Exception $e) {
-                            $timeStr = (string) $timeRaw; // fallback
-                        }
-                    }
-                    $dropoff = trim($dateStr . (strlen($timeStr) ? ' • ' . $timeStr : '')) ?: 'N/A';
-                }
-
-                $pickup = null;
-                if ($order->pickup_date || $order->pickup_time) {
-                    $dateStr = $order->pickup_date ? Carbon::parse($order->pickup_date)->format('M j, Y') : '';
-                    $timeRaw = $order->pickup_time;
-                    $timeStr = '';
-                    if (!empty($timeRaw)) {
-                        try {
-                            $timeStr = Carbon::parse($timeRaw)->format('g:i A');
-                        } catch (\Exception $e) {
-                            $timeStr = (string) $timeRaw; // fallback
-                        }
-                    }
-                    $pickup = trim($dateStr . (strlen($timeStr) ? ' • ' . $timeStr : '')) ?: 'N/A';
-                }
+                // Compose date strings (without time)
+                $dropoff = $order->dropoff_date ? Carbon::parse($order->dropoff_date)->format('M j, Y') : 'N/A';
+                $pickup = $order->pickup_date ? Carbon::parse($order->pickup_date)->format('M j, Y') : 'N/A';
 
                 return [
                     'id' => $order->id,
@@ -62,40 +36,22 @@ class ScheduleController extends Controller
                     'customer_phone' => $order->customer->phone_number ?? 'N/A',
                     'dropoff' => $dropoff ?: 'N/A',
                     'pickup' => $pickup ?: 'N/A',
-                    'approval_status' => ucfirst($order->approval_status),
-                    // Normalize status for robust client-side filtering
-                    'status' => strtolower(trim((string) $order->status)),
-                    'status_display' => ucfirst(str_replace('_', ' ', (string) $order->status)),
-                    'weight' => $order->getAttribute('weight'),
+                    'status' => $order->status, // Use consistent status field
+                    'status_display' => $this->formatStatusDisplay($order->status),
+                    'weight' => $order->weight,
                     'price' => $order->total_price !== null ? number_format((float)$order->total_price, 2) : null,
-                    'approved_by' => optional($order->approvedBy)->name,
-                    'approved_at' => $order->approved_at ?? null,
                     'updated_at' => $order->updated_at ? $order->updated_at->format('M j, Y g:i A') : null,
                     'notes' => $order->notes ?? '',
                     'created_at' => $order->created_at->format('M j, Y g:i A'),
+                    'actions' => $this->getActionsForStatus($order->status, $order),
                 ];
-            });
+            })->toArray();
 
-        // Get approved schedules for reference
-        $approvedSchedules = Order::with(['customer', 'service'])
-            ->where('approval_status', 'approved')
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($order) {
-                return [
-                    'id' => $order->id,
-                    'customer_name' => $order->customer->name ?? 'N/A',
-                    'service_name' => $order->service->name ?? 'General Laundry',
-                    'dropoff_date' => $order->dropoff_date ? Carbon::parse($order->dropoff_date)->format('M j, Y') : 'N/A',
-                    'pickup_date' => $order->pickup_date ? Carbon::parse($order->pickup_date)->format('M j, Y') : 'N/A',
-                    'status' => ucfirst(str_replace('_', ' ', $order->status)),
-                    'approved_at' => $order->approved_at ? Carbon::parse($order->approved_at)->format('M j, Y g:i A') : 'N/A',
-                ];
-            });
+        // Get pending schedules count for statistics
+        $pendingCount = Order::where('status', 'pending')->count();
 
-        // Define columns for schedules table in requested layout
-        $pendingColumns = [
+        // Define columns for all schedules table
+        $scheduleColumns = [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true],
             ['key' => 'customer_name', 'label' => 'Customer', 'sortable' => true],
             ['key' => 'customer_phone', 'label' => 'Phone', 'sortable' => true],
@@ -104,30 +60,27 @@ class ScheduleController extends Controller
             ['key' => 'status_display', 'label' => 'Status', 'sortable' => true, 'type' => 'badge'],
             ['key' => 'weight', 'label' => 'Weight', 'sortable' => true],
             ['key' => 'price', 'label' => 'Price', 'sortable' => true],
-            ['key' => 'approved_by', 'label' => 'Approved By', 'sortable' => true],
             ['key' => 'updated_at', 'label' => 'Last Updated', 'sortable' => true],
         ];
 
-        // Define actions for pending schedules
-        $pendingActions = [
+        // Define default actions (will be overridden by dynamic actions per row)
+        $scheduleActions = [
             ['key' => 'view', 'label' => 'View Details', 'icon' => 'fas fa-eye'],
-            ['key' => 'approve', 'label' => 'Approve', 'icon' => 'fas fa-check'],
-            ['key' => 'reject', 'label' => 'Reject', 'icon' => 'fas fa-times'],
         ];
 
         // If this is the fetch endpoint or an AJAX/JSON request, return JSON
         if ($request->expectsJson() || $request->isMethod('post')) {
             return response()->json([
                 'success' => true,
-                'schedules' => $pendingSchedules,
+                'schedules' => $allSchedules,
             ]);
         }
 
         return view('staff.schedules.index', compact(
-            'pendingSchedules',
-            'approvedSchedules',
-            'pendingColumns',
-            'pendingActions'
+            'allSchedules',
+            'scheduleColumns',
+            'scheduleActions',
+            'pendingCount'
         ));
     }
 
@@ -139,20 +92,18 @@ class ScheduleController extends Controller
         $order = Order::findOrFail($id);
         
         // Check if order is still pending
-        if ($order->approval_status !== 'pending') {
+        if ($order->status !== 'pending') {
             return response()->json([
                 'success' => false,
                 'message' => 'This schedule has already been processed.'
             ], 400);
         }
 
-        // Update approval status and order status
+        // Update status to confirmed when approved
         $order->update([
-            'approval_status' => 'approved',
-            'status' => 'confirmed', // Set order status to confirmed when approved
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
+            'status' => 'confirmed',
             'staff_id' => Auth::id(), // Assign to current staff member
+            'updated_at' => now(),
         ]);
 
         return response()->json([
@@ -174,19 +125,18 @@ class ScheduleController extends Controller
         $order = Order::findOrFail($id);
         
         // Check if order is still pending
-        if ($order->approval_status !== 'pending') {
+        if ($order->status !== 'pending') {
             return response()->json([
                 'success' => false,
                 'message' => 'This schedule has already been processed.'
             ], 400);
         }
 
-        // Update approval status
+        // Update status to cancelled when rejected
         $order->update([
-            'approval_status' => 'rejected',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'rejection_reason' => $request->rejection_reason,
+            'status' => 'cancelled',
+            'cancellation_reason' => $request->rejection_reason,
+            'updated_at' => now(),
         ]);
 
         return response()->json([
@@ -271,6 +221,15 @@ class ScheduleController extends Controller
             ]);
         }
 
+        // If cancelling, also update approval status
+        if ($request->status === 'cancelled') {
+            $order->update([
+                'approval_status' => 'rejected', // Mark as rejected since it's no longer pending approval
+                'approved_by' => Auth::id(),
+                'approved_at' => now()
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Schedule status updated successfully to ' . ucfirst(str_replace('_', ' ', $request->status)),
@@ -279,7 +238,7 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Set weight/price and move to processing
+     * Set weight/price and stay in confirmed status
      */
     public function setPricing(Request $request, $id)
     {
@@ -300,14 +259,252 @@ class ScheduleController extends Controller
         $order->update([
             'weight' => $request->weight,
             'total_price' => $request->price,
-            'status' => 'in_progress', // Changed from 'processing' to 'in_progress' to match status mapping
+            'status' => 'confirmed', // STAY in confirmed, don't auto-move to processing
             'updated_at' => now()
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Weight and price saved. Schedule moved to Processing.',
+            'message' => 'Weight and price saved successfully.',
             'order' => $order
+        ]);
+    }
+
+    /**
+     * Cancel a schedule (for approved and beyond)
+     */
+    public function cancel(Request $request, $id)
+    {
+        $request->validate([
+            'cancellation_reason' => 'nullable|string|max:500'
+        ]);
+        
+        $order = Order::findOrFail($id);
+        
+        // Can only cancel if approved or beyond
+        if ($order->status === 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Use Reject for pending schedules.'
+            ], 400);
+        }
+        
+        if (in_array($order->status, ['completed', 'cancelled'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot cancel a completed or already cancelled schedule.'
+            ], 400);
+        }
+        
+        $order->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $request->cancellation_reason,
+            'updated_at' => now()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule cancelled successfully.',
+            'order' => $order
+        ]);
+    }
+
+    /**
+     * Start processing a confirmed schedule
+     */
+    public function startProcessing(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        
+        if ($order->status !== 'confirmed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Can only start processing on confirmed schedules.'
+            ], 400);
+        }
+        
+        if (!$order->weight || !$order->total_price) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please set weight and price before processing.'
+            ], 400);
+        }
+        
+        $order->update([
+            'status' => 'processing',
+            'updated_at' => now()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule moved to processing.',
+            'order' => $order
+        ]);
+    }
+
+    /**
+     * Mark schedule as ready for pickup
+     */
+    public function markReadyForPickup(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        
+        if ($order->status !== 'processing') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Can only mark as ready from processing status.'
+            ], 400);
+        }
+        
+        $order->update([
+            'status' => 'ready_for_pickup',
+            'updated_at' => now()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule marked as ready for pickup.',
+            'order' => $order
+        ]);
+    }
+
+    /**
+     * Mark schedule as completed
+     */
+    public function markCompleted(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        
+        if ($order->status !== 'ready_for_pickup') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Can only complete orders that are ready for pickup.'
+            ], 400);
+        }
+        
+        $order->update([
+            'status' => 'completed',
+            'updated_at' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule marked as completed.',
+            'order' => $order
+        ]);
+    }
+
+    /**
+     * Get actions for a specific status
+     */
+    private function getActionsForStatus($status, $order = null)
+    {
+        // Status-based actions using consistent status values
+        switch ($status) {
+            case 'pending':
+                return [
+                    ['key' => 'approve', 'label' => 'Approve', 'icon' => 'fas fa-check', 'color' => 'green'],
+                    ['key' => 'reject', 'label' => 'Reject', 'icon' => 'fas fa-times', 'color' => 'red'],
+                    ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+                ];
+                
+            case 'confirmed':
+                // Determine if price/weight is already set
+                $hasPricing = $order && $order->weight && $order->total_price;
+                
+                if ($hasPricing) {
+                    // If price/weight is set, show: Start Processing, Cancel, View
+                    return [
+                        ['key' => 'start_processing', 'label' => 'Start Processing', 'icon' => 'fas fa-play', 'color' => 'green'],
+                        ['key' => 'cancel', 'label' => 'Cancel', 'icon' => 'fas fa-ban', 'color' => 'red'],
+                        ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+                    ];
+                } else {
+                    // If no price/weight set, show: Add Price/Weight, Cancel, View
+                    return [
+                        ['key' => 'add_price', 'label' => 'Add Price/Weight', 'icon' => 'fas fa-balance-scale', 'color' => 'blue'],
+                        ['key' => 'cancel', 'label' => 'Cancel', 'icon' => 'fas fa-ban', 'color' => 'red'],
+                        ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+                    ];
+                }
+                
+            case 'processing':
+                return [
+                    ['key' => 'mark_ready', 'label' => 'Ready for Pickup', 'icon' => 'fas fa-box', 'color' => 'green'],
+                    ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+                ];
+                
+            case 'ready_for_pickup':
+                return [
+                    ['key' => 'mark_completed', 'label' => 'Mark Completed', 'icon' => 'fas fa-check-circle', 'color' => 'green'],
+                    ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+                ];
+                
+            case 'completed':
+            case 'cancelled':
+                return [
+                    ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+                ];
+                
+            default:
+                return [
+                    ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+                ];
+        }
+    }
+
+    /**
+     * Format status for display
+     */
+    private function formatStatusDisplay($status)
+    {
+        $statusMap = [
+            'pending' => 'Pending',
+            'confirmed' => 'Approved',
+            'processing' => 'Processing',
+            'ready_for_pickup' => 'Ready for Pickup',
+            'completed' => 'Completed',
+            'cancelled' => 'Cancelled'
+        ];
+        
+        return $statusMap[$status] ?? ucfirst(str_replace('_', ' ', $status));
+    }
+
+    /**
+     * Get all schedules (including completed and cancelled) for filtering
+     */
+    public function getAllSchedules(Request $request)
+    {
+        $allSchedules = Order::with(['customer', 'service', 'approvedBy'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($order) {
+                // Compose date strings (without time)
+                $dropoff = $order->dropoff_date ? Carbon::parse($order->dropoff_date)->format('M j, Y') : 'N/A';
+                $pickup = $order->pickup_date ? Carbon::parse($order->pickup_date)->format('M j, Y') : 'N/A';
+
+                return [
+                    'id' => $order->id,
+                    'customer_id' => $order->customer_id,
+                    'customer_name' => $order->customer->name ?? 'N/A',
+                    'customer_email' => $order->customer->email ?? 'N/A',
+                    'customer_phone' => $order->customer->phone_number ?? 'N/A',
+                    'dropoff' => $dropoff ?: 'N/A',
+                    'pickup' => $pickup ?: 'N/A',
+                    'status' => $order->status,
+                    'status_display' => $this->formatStatusDisplay($order->status),
+                    'weight' => $order->weight,
+                    'price' => $order->total_price !== null ? number_format((float)$order->total_price, 2) : null,
+                    'updated_at' => $order->updated_at ? $order->updated_at->format('M j, Y g:i A') : null,
+                    'notes' => $order->notes ?? '',
+                    'created_at' => $order->created_at->format('M j, Y g:i A'),
+                    'actions' => $this->getActionsForStatus($order->status, $order),
+                ];
+            })->toArray();
+
+        return response()->json([
+            'success' => true,
+            'schedules' => $allSchedules,
         ]);
     }
 
@@ -317,15 +514,15 @@ class ScheduleController extends Controller
     public function getStats()
     {
         $stats = [
-            'pending_count' => Order::where('approval_status', 'pending')->count(),
-            'approved_today' => Order::where('approval_status', 'approved')
-                ->whereDate('approved_at', today())
+            'pending_count' => Order::where('status', 'pending')->count(),
+            'approved_today' => Order::where('status', 'confirmed')
+                ->whereDate('updated_at', today())
                 ->count(),
-            'rejected_today' => Order::where('approval_status', 'rejected')
-                ->whereDate('approved_at', today())
+            'rejected_today' => Order::where('status', 'cancelled')
+                ->whereDate('updated_at', today())
                 ->count(),
-            'total_processed_today' => Order::whereIn('approval_status', ['approved', 'rejected'])
-                ->whereDate('approved_at', today())
+            'total_processed_today' => Order::whereIn('status', ['processing', 'ready_for_pickup', 'completed'])
+                ->whereDate('updated_at', today())
                 ->count(),
         ];
 

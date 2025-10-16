@@ -250,25 +250,25 @@ class ScheduleController extends Controller
             return 'Rejected';
         }
         
-        // If approval status is pending, only show "Pending Approval" if the order status is also pending
-        if ($approvalStatus === 'pending' && $status === 'pending') {
+        // If approval status is pending, show "Pending Approval" (regardless of order status)
+        if ($approvalStatus === 'pending') {
             return 'Pending Approval';
         }
         
-        // For all other cases (including pending approval with cancelled/completed status), show the actual order status
+        // For approved orders, show the actual order status
         $statusMap = [
             'pending' => 'Pending',
-            'confirmed' => 'Confirmed', 
+            'scheduled' => 'Confirmed', 
+            'priced' => 'Confirmed',
             'in_progress' => 'In Progress',
             'ready_for_pickup' => 'Ready for Pickup',
             'completed' => 'Completed',
             'cancelled' => 'Cancelled',
+            'canceled' => 'Cancelled',
             // Legacy statuses for backward compatibility
-            'approved' => 'Confirmed', // Map old 'approved' status to 'Confirmed'
-            'processing' => 'In Progress', // Map old 'processing' status to 'In Progress'
-            'scheduled' => 'Confirmed',
-            'priced' => 'Confirmed',
-            'canceled' => 'Cancelled'
+            'approved' => 'Confirmed',
+            'processing' => 'In Progress',
+            'confirmed' => 'Confirmed'
         ];
 
         return $statusMap[$status] ?? ucfirst(str_replace('_', ' ', $status));
@@ -307,6 +307,7 @@ class ScheduleController extends Controller
         // Update the order status to cancelled and store the reason
         $order->update([
             'status' => 'cancelled',
+            'approval_status' => 'rejected', // Mark as rejected since it's no longer pending approval
             'notes' => $cancellationReason ? "Cancelled by customer: " . $cancellationReason : "Cancelled by customer"
         ]);
         

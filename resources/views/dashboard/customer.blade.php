@@ -3,7 +3,7 @@
 @section('title', 'Customer Dashboard')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/status-badges.css') }}">
+@vite(['resources/css/status-badges.css'])
 @endpush
 
 @section('content')
@@ -310,22 +310,35 @@
                 <div class="space-y-4">
                     @forelse($upcomingSchedules as $schedule)
                         @php
-                            $statusColors = [
-                                'Scheduled' => ['bg' => 'bg-emerald-500/20', 'icon' => 'fas fa-calendar-plus text-emerald-500'],
-                                'Confirmed' => ['bg' => 'bg-teal-500/20', 'icon' => 'fas fa-calendar-check text-teal-500'],
-                                'Pending' => ['bg' => 'bg-yellow-500/20', 'icon' => 'fas fa-clock text-yellow-500']
-                            ];
-                            $statusColor = $statusColors[$schedule['status']] ?? ['bg' => 'bg-slate-500/20', 'icon' => 'fas fa-calendar text-slate-500'];
+                            // Use consistent status colors - same as Recent Schedules
+                            $statusColors = \App\Helpers\StatusHelper::getStatusColor($schedule['status']);
+                            $statusColor = $statusColors['badge'];
+                            $dotColor = $statusColors['dot'];
+                            
+                            // Set border color based on status
+                            $borderColor = 'border-slate-400'; // Default
+                            if (str_contains($statusColor, 'yellow')) {
+                                $borderColor = 'border-yellow-400';
+                            } elseif (str_contains($statusColor, 'green')) {
+                                $borderColor = 'border-green-400';
+                            } elseif (str_contains($statusColor, 'blue')) {
+                                $borderColor = 'border-blue-400';
+                            } elseif (str_contains($statusColor, 'purple')) {
+                                $borderColor = 'border-purple-400';
+                            } elseif (str_contains($statusColor, 'red')) {
+                                $borderColor = 'border-red-400';
+                            } elseif (str_contains($statusColor, 'gray')) {
+                                $borderColor = 'border-gray-400';
+                            }
                         @endphp
-                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                            <div class="w-8 h-8 {{ $statusColor['bg'] }} rounded-full flex items-center justify-center">
-                                <i class="{{ $statusColor['icon'] }} text-sm"></i>
-                            </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors border-l-4 {{ $borderColor }}">
+                            <div class="w-2 h-2 {{ $dotColor }} rounded-full mt-2"></div>
                             <div class="flex-1">
-                                <h4 class="text-slate-50 font-medium">{{ $schedule['service_type'] }} - {{ $schedule['status'] }}</h4>
-                                <p class="text-slate-400 text-sm">Drop-off: {{ $schedule['dropoff_date'] }} at {{ $schedule['dropoff_time'] }}</p>
-                                <p class="text-slate-500 text-xs mt-1">Pickup: {{ $schedule['pickup_date'] }} at {{ $schedule['pickup_time'] }}</p>
+                                <h4 class="text-slate-50 font-medium">Order #{{ $schedule['id'] }} - {{ $schedule['status'] }}</h4>
+                                <p class="text-slate-400 text-sm">{{ $schedule['service_type'] }} - Drop-off: {{ $schedule['dropoff_date'] }}</p>
+                                <p class="text-slate-500 text-xs mt-1">Pickup: {{ $schedule['pickup_date'] }}</p>
                             </div>
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold border {{ $statusColor }}">{{ $schedule['status'] }}</span>
                         </div>
                     @empty
                         <div class="text-center py-8">

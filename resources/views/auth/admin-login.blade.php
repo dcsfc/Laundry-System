@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Google+Sans:wght@400;500;600&family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/admin-login.css') }}">
+    @vite(['resources/css/admin-login.css'])
 </head>
 <body>
     <div class="login-container">

@@ -69,9 +69,10 @@
                 @change="handleFilterChange('statusFilter', $event.target.value)"
             >
                 <option value="" class="bg-slate-900 text-gray-200">All Status</option>
-                <option value="scheduled" class="bg-slate-900 text-gray-200">Scheduled</option>
-                <option value="priced" class="bg-slate-900 text-gray-200">Priced</option>
-                <option value="in_progress" class="bg-slate-900 text-gray-200">In Progress</option>
+                <option value="pending" class="bg-slate-900 text-gray-200">Pending</option>
+                <option value="confirmed" class="bg-slate-900 text-gray-200">Approved</option>
+                <option value="processing" class="bg-slate-900 text-gray-200">Processing</option>
+                <option value="ready_for_pickup" class="bg-slate-900 text-gray-200">Ready for Pickup</option>
                 <option value="completed" class="bg-slate-900 text-gray-200">Completed</option>
                 <option value="cancelled" class="bg-slate-900 text-gray-200">Cancelled</option>
             </select>

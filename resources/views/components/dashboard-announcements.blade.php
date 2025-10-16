@@ -108,9 +108,9 @@
 </div>
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/announcements.css') }}">
+@vite(['resources/css/announcements.css'])
 @endpush
 
 @push('scripts')
-<script src="{{ asset('js/announcements.js') }}"></script>
+@vite(['resources/js/modules/announcements/index.js'])
 @endpush

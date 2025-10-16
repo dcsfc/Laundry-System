@@ -41,7 +41,7 @@
     <!-- Actions Column -->
     <td class="actions-cell">
         <div class="flex items-center gap-1.5 whitespace-nowrap">
-            <template x-if="row.status === 'pending'">
+            <template x-if="row.approval_status === 'Pending'">
                 <div class="flex items-center gap-1.5">
                     <button 
                         class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors duration-200"

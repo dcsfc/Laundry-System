@@ -3,7 +3,7 @@
 @section('title', 'Announcements Management')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/announcements.css') }}">
+@vite(['resources/css/announcements.css'])
 @endpush
 
 @section('content')
@@ -250,6 +250,6 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('js/announcements.js') }}"></script>
+@vite(['resources/js/modules/announcements/index.js'])
 @endpush
 @endsection

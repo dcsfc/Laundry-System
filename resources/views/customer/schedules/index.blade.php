@@ -199,7 +199,6 @@
                                         </div>
                                         <div class="ml-3">
                                         <div class="text-sm font-medium text-white">{{ \Carbon\Carbon::parse($schedule['dropoff_date'])->format('M j, Y') }}</div>
-                                        <div class="text-xs text-slate-400">{{ $schedule['dropoff_time'] }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -214,7 +213,6 @@
                                         </div>
                                         <div class="ml-3">
                                         <div class="text-sm font-medium text-white">{{ \Carbon\Carbon::parse($schedule['pickup_date'])->format('M j, Y') }}</div>
-                                        <div class="text-xs text-slate-400">{{ $schedule['pickup_time'] }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -414,14 +412,14 @@
     </div>
 
     <!-- Include CSS -->
-    <link rel="stylesheet" href="{{ asset('css/customer-schedules.css') }}?v={{ time() }}">
+    @vite(['resources/css/customer-schedules.css'])
 
     <!-- Include JavaScript -->
     <script>
         // Set the routes for form submission
         window.scheduleStoreRoute = '{{ route("customer.schedules.store") }}';
-        window.scheduleUpdateRoute = '{{ route("customer.schedules.update", ":id") }}';
-        window.scheduleDeleteRoute = '{{ route("customer.schedules.cancel", ":id") }}';
+        window.scheduleUpdateRoute = '{{ route("customer.schedules.update", ":schedule") }}';
+        window.scheduleDeleteRoute = '{{ route("customer.schedules.cancel", ":schedule") }}';
     </script>
-    <script src="{{ asset('js/customer-schedules.js') }}?v={{ time() }}"></script>
+    @vite(['resources/js/modules/schedules/customer-schedules.js'])
 @endsection

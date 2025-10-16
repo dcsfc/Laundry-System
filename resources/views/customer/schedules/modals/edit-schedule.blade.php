@@ -30,59 +30,22 @@
                     <label class="block text-sm font-semibold text-slate-200">Service Type</label>
                     <select name="service_id" id="edit_service_id" required class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
                         <option value="">Select a service</option>
-                        <option value="1">Wash & Fold</option>
-                        <option value="2">Wash & Press</option>
-                        <option value="3">Dry Clean</option>
-                        <option value="4">Express Service</option>
+                        @foreach($services as $service)
+                            <option value="{{ $service->id }}">{{ $service->name }} - ₱{{ number_format($service->price, 2) }}</option>
+                        @endforeach
                     </select>
                 </div>
 
-                <!-- Drop-off Date and Time -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-3">
-                        <label class="block text-sm font-semibold text-slate-200">Drop-off Date</label>
-                        <input type="date" name="dropoff_date" id="edit_dropoff_date" required class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
-                    </div>
-                    <div class="space-y-3">
-                        <label class="block text-sm font-semibold text-slate-200">Drop-off Time</label>
-                        <select name="dropoff_time" id="edit_dropoff_time" required class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
-                            <option value="">Select time</option>
-                            <option value="08:00">8:00 AM</option>
-                            <option value="09:00">9:00 AM</option>
-                            <option value="10:00">10:00 AM</option>
-                            <option value="11:00">11:00 AM</option>
-                            <option value="12:00">12:00 PM</option>
-                            <option value="13:00">1:00 PM</option>
-                            <option value="14:00">2:00 PM</option>
-                            <option value="15:00">3:00 PM</option>
-                            <option value="16:00">4:00 PM</option>
-                            <option value="17:00">5:00 PM</option>
-                        </select>
-                    </div>
+                <!-- Drop-off Date -->
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-slate-200">Drop-off Date</label>
+                    <input type="date" name="dropoff_date" id="edit_dropoff_date" required class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
                 </div>
 
-                <!-- Pickup Date and Time -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-3">
-                        <label class="block text-sm font-semibold text-slate-200">Pickup Date</label>
-                        <input type="date" name="pickup_date" id="edit_pickup_date" required class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
-                    </div>
-                    <div class="space-y-3">
-                        <label class="block text-sm font-semibold text-slate-200">Pickup Time</label>
-                        <select name="pickup_time" id="edit_pickup_time" required class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
-                            <option value="">Select time</option>
-                            <option value="08:00">8:00 AM</option>
-                            <option value="09:00">9:00 AM</option>
-                            <option value="10:00">10:00 AM</option>
-                            <option value="11:00">11:00 AM</option>
-                            <option value="12:00">12:00 PM</option>
-                            <option value="13:00">1:00 PM</option>
-                            <option value="14:00">2:00 PM</option>
-                            <option value="15:00">3:00 PM</option>
-                            <option value="16:00">4:00 PM</option>
-                            <option value="17:00">5:00 PM</option>
-                        </select>
-                    </div>
+                <!-- Pickup Date -->
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-slate-200">Pickup Date</label>
+                    <input type="date" name="pickup_date" id="edit_pickup_date" required class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
                 </div>
 
             </form>

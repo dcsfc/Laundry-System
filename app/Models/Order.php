@@ -65,6 +65,11 @@ class Order extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function payment()
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
     public function service()
     {
         return $this->belongsTo(Service::class);

@@ -5,11 +5,30 @@ use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\SuperAdmin\AnnouncementController as SuperAdminAnnouncementController;
 use App\Http\Controllers\SuperAdmin\ServiceController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
-use App\Http\Controllers\AnnouncementController;
 
-// Landing page
+// Admin namespace controllers
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
+use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\ServiceController as AdminServiceController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\StaffController as AdminStaffController;
+
+// Staff namespace controllers
+use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
+use App\Http\Controllers\Staff\OrderController as StaffOrderController;
+
+// Customer namespace controllers
+use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+use App\Http\Controllers\Customer\AnnouncementController as CustomerAnnouncementController;
+use App\Http\Controllers\Customer\ScheduleController as CustomerScheduleController;
+use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
+
+// Landing page - redirect to customer login
 Route::get('/', function () {
-    return view('landing');
+    return redirect()->route('login');
 });
 
 // Default dashboard route - redirects based on user role
@@ -92,7 +111,7 @@ Route::middleware(['auth:admin,customer,web'])->group(function () {
 
     // Dashboard announcements for all authenticated users
     Route::middleware('auth:admin,customer,web')->group(function () {
-        Route::get('/announcements/dashboard', [AnnouncementController::class, 'getDashboardAnnouncements'])->name('announcements.dashboard');
+        Route::get('/announcements/dashboard', [SuperAdminAnnouncementController::class, 'getDashboardAnnouncements'])->name('announcements.dashboard');
     });
 
     /**
@@ -101,12 +120,12 @@ Route::middleware(['auth:admin,customer,web'])->group(function () {
      * Name: admin.dashboard
      */
     Route::middleware(['auth:admin', 'role:administrator'])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dashboard.admin'); // resources/views/dashboard/admin.blade.php
-        })->name('dashboard');
+        // Dashboard
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
-        // Service Management - Only index implemented
-        Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+        // Service Management
+        Route::resource('services', AdminServiceController::class);
+        Route::post('/services/{service}/toggle-status', [AdminServiceController::class, 'toggleStatus'])->name('services.toggle-status');
         
         // User Management (Admin can manage staff and customers)
         Route::get('/users', [UserController::class, 'adminUsers'])->name('users.index');
@@ -117,38 +136,24 @@ Route::middleware(['auth:admin,customer,web'])->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         
+        // Staff Management
+        Route::resource('staff', AdminStaffController::class);
+        Route::post('/staff/{staff}/toggle-status', [AdminStaffController::class, 'toggleStatus'])->name('staff.toggle-status');
         
         // Schedules Management
-        Route::get('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'index'])->name('schedules.index');
-        Route::get('/schedules/create', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'create'])->name('schedules.create');
-        Route::post('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'store'])->name('schedules.store');
-        Route::get('/schedules/{schedule}', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'show'])->name('schedules.show');
-        Route::get('/schedules/{schedule}/edit', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'edit'])->name('schedules.edit');
-        Route::put('/schedules/{schedule}', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'update'])->name('schedules.update');
-        Route::delete('/schedules/{schedule}', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'destroy'])->name('schedules.destroy');
+        Route::resource('schedules', AdminScheduleController::class);
         
         // Inventory Management
-        Route::get('/inventory', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'index'])->name('inventory.index');
-        Route::get('/inventory/create', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'create'])->name('inventory.create');
-        Route::post('/inventory', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'store'])->name('inventory.store');
-        Route::get('/inventory/{inventory}', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'show'])->name('inventory.show');
-        Route::get('/inventory/{inventory}/edit', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'edit'])->name('inventory.edit');
-        Route::put('/inventory/{inventory}', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'update'])->name('inventory.update');
-        Route::delete('/inventory/{inventory}', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'destroy'])->name('inventory.destroy');
+        Route::resource('inventory', AdminInventoryController::class);
+        Route::post('/inventory/{inventory}/update-stock', [AdminInventoryController::class, 'updateStock'])->name('inventory.update-stock');
         
         // Payments Management
-        Route::get('/payments', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'index'])->name('payments.index');
-        Route::get('/payments/create', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'create'])->name('payments.create');
-        Route::post('/payments', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'store'])->name('payments.store');
-        Route::get('/payments/{payment}', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'show'])->name('payments.show');
-        Route::get('/payments/{payment}/edit', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'edit'])->name('payments.edit');
-        Route::put('/payments/{payment}', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'update'])->name('payments.update');
-        Route::delete('/payments/{payment}', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'destroy'])->name('payments.destroy');
+        Route::resource('payments', AdminPaymentController::class);
         
         // Reports
-        Route::get('/reports', [\App\Http\Controllers\SuperAdmin\ReportController::class, 'index'])->name('reports.index');
-        Route::get('/reports/sales', [\App\Http\Controllers\SuperAdmin\ReportController::class, 'sales'])->name('reports.sales');
-        Route::get('/reports/export', [\App\Http\Controllers\SuperAdmin\ReportController::class, 'export'])->name('reports.export');
+        Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/sales', [AdminReportController::class, 'sales'])->name('reports.sales');
+        Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
         
         // Profile routes
         Route::get('/profile', function () {
@@ -168,7 +173,8 @@ Route::middleware(['auth:admin,customer,web'])->group(function () {
      * Name: staff.dashboard
      */
     Route::middleware(['auth:admin', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\StaffController::class, 'dashboard'])->name('dashboard');
+        // Dashboard
+        Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
         
         
         // API routes for modals
@@ -182,27 +188,45 @@ Route::middleware(['auth:admin,customer,web'])->group(function () {
         
         // Schedules Management (Approval Workflow)
         Route::get('/schedules', [\App\Http\Controllers\Staff\ScheduleController::class, 'index'])->name('schedules.index');
+        Route::get('/schedules/stats', [\App\Http\Controllers\Staff\ScheduleController::class, 'getStats'])->name('schedules.stats');
+        Route::post('/schedules/fetch', [\App\Http\Controllers\Staff\ScheduleController::class, 'index'])->name('schedules.fetch');
+        Route::get('/schedules/all', [\App\Http\Controllers\Staff\ScheduleController::class, 'getAllSchedules'])->name('schedules.all');
         Route::get('/schedules/{schedule}', [\App\Http\Controllers\Staff\ScheduleController::class, 'show'])->name('schedules.show');
         Route::post('/schedules/{schedule}/approve', [\App\Http\Controllers\Staff\ScheduleController::class, 'approve'])->name('schedules.approve');
         Route::post('/schedules/{schedule}/reject', [\App\Http\Controllers\Staff\ScheduleController::class, 'reject'])->name('schedules.reject');
         Route::put('/schedules/{schedule}/status', [\App\Http\Controllers\Staff\ScheduleController::class, 'updateStatus'])->name('schedules.status');
         Route::put('/schedules/{schedule}/pricing', [\App\Http\Controllers\Staff\ScheduleController::class, 'setPricing'])->name('schedules.pricing');
-        Route::get('/schedules/stats', [\App\Http\Controllers\Staff\ScheduleController::class, 'getStats'])->name('schedules.stats');
-        Route::post('/schedules/fetch', [\App\Http\Controllers\Staff\ScheduleController::class, 'index'])->name('schedules.fetch');
+        Route::post('/schedules/{schedule}/cancel', [\App\Http\Controllers\Staff\ScheduleController::class, 'cancel'])->name('schedules.cancel');
+        Route::post('/schedules/{schedule}/start-processing', [\App\Http\Controllers\Staff\ScheduleController::class, 'startProcessing'])->name('schedules.start-processing');
+        Route::post('/schedules/{schedule}/mark-ready', [\App\Http\Controllers\Staff\ScheduleController::class, 'markReadyForPickup'])->name('schedules.mark-ready');
+        Route::post('/schedules/{schedule}/mark-completed', [\App\Http\Controllers\Staff\ScheduleController::class, 'markCompleted'])->name('schedules.mark-completed');
         
         // Inventory Management
-        Route::get('/inventory', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'index'])->name('inventory.index');
-        Route::get('/inventory/{inventory}', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'show'])->name('inventory.show');
-        Route::put('/inventory/{inventory}', [\App\Http\Controllers\SuperAdmin\InventoryController::class, 'update'])->name('inventory.update');
+        Route::get('/inventory', [\App\Http\Controllers\Staff\InventoryController::class, 'index'])->name('inventory.index');
+        Route::get('/inventory/create', [\App\Http\Controllers\Staff\InventoryController::class, 'create'])->name('inventory.create');
+        Route::post('/inventory', [\App\Http\Controllers\Staff\InventoryController::class, 'store'])->name('inventory.store');
+        Route::get('/inventory/{inventory}', [\App\Http\Controllers\Staff\InventoryController::class, 'show'])->name('inventory.show');
+        Route::get('/inventory/{inventory}/edit', [\App\Http\Controllers\Staff\InventoryController::class, 'edit'])->name('inventory.edit');
+        Route::put('/inventory/{inventory}', [\App\Http\Controllers\Staff\InventoryController::class, 'update'])->name('inventory.update');
+        Route::post('/inventory/{inventory}/update-stock', [\App\Http\Controllers\Staff\InventoryController::class, 'updateStock'])->name('inventory.update-stock');
+        Route::delete('/inventory/{inventory}', [\App\Http\Controllers\Staff\InventoryController::class, 'destroy'])->name('inventory.destroy');
         
         // Payments Management
-        Route::get('/payments', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'index'])->name('payments.index');
-        Route::get('/payments/{payment}', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'show'])->name('payments.show');
-        Route::post('/payments', [\App\Http\Controllers\SuperAdmin\PaymentController::class, 'store'])->name('payments.store');
+        Route::get('/payments', [\App\Http\Controllers\Staff\PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/create', [\App\Http\Controllers\Staff\PaymentController::class, 'create'])->name('payments.create');
+        Route::post('/payments', [\App\Http\Controllers\Staff\PaymentController::class, 'store'])->name('payments.store');
+        Route::get('/payments/{payment}', [\App\Http\Controllers\Staff\PaymentController::class, 'show'])->name('payments.show');
+        Route::get('/payments/{payment}/edit', [\App\Http\Controllers\Staff\PaymentController::class, 'edit'])->name('payments.edit');
+        Route::put('/payments/{payment}', [\App\Http\Controllers\Staff\PaymentController::class, 'update'])->name('payments.update');
+        Route::delete('/payments/{payment}', [\App\Http\Controllers\Staff\PaymentController::class, 'destroy'])->name('payments.destroy');
         
-        // Reports (Weekly only)
-        Route::get('/reports', [\App\Http\Controllers\SuperAdmin\ReportController::class, 'weekly'])->name('reports.weekly');
-        Route::get('/reports/index', [\App\Http\Controllers\SuperAdmin\ReportController::class, 'weekly'])->name('reports.index');
+        // Reports Management
+        Route::get('/reports', [\App\Http\Controllers\Staff\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/create', [\App\Http\Controllers\Staff\ReportController::class, 'create'])->name('reports.create');
+        Route::post('/reports', [\App\Http\Controllers\Staff\ReportController::class, 'store'])->name('reports.store');
+        Route::get('/reports/{report}', [\App\Http\Controllers\Staff\ReportController::class, 'show'])->name('reports.show');
+        Route::get('/reports/{report}/edit', [\App\Http\Controllers\Staff\ReportController::class, 'edit'])->name('reports.edit');
+        Route::get('/reports/{report}/export', [\App\Http\Controllers\Staff\ReportController::class, 'export'])->name('reports.export');
         
         // Profile routes
         Route::get('/profile', function () {
@@ -222,26 +246,28 @@ Route::middleware(['auth:admin,customer,web'])->group(function () {
      * Name: customer.dashboard
      */
     Route::middleware(['auth:customer', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\CustomerController::class, 'dashboard'])->name('dashboard');
+        // Dashboard
+        Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('dashboard');
         
         // Schedules Management (Customer can schedule laundry)
-        Route::get('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerSchedules'])->name('schedules.index');
-        Route::get('/schedules/create', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'create'])->name('schedules.create');
-        Route::post('/schedules', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerScheduleCreate'])->name('schedules.store');
+        Route::get('/schedules', [CustomerScheduleController::class, 'index'])->name('schedules.index');
+        Route::post('/schedules', [CustomerScheduleController::class, 'store'])->name('schedules.store');
         
         // Schedule History (Customer can view completed/cancelled schedules) - MUST be before parameterized routes
         Route::get('/schedules/history', [\App\Http\Controllers\SuperAdmin\ScheduleHistoryController::class, 'index'])->name('schedules.history');
         
-        Route::get('/schedules/{schedule}', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerScheduleShow'])->name('schedules.show');
+        Route::get('/schedules/{schedule}', [CustomerScheduleController::class, 'show'])->name('schedules.show');
         // Update schedule
-        Route::post('/schedules/{schedule}/update', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerScheduleUpdate'])->name('schedules.update');
+        Route::post('/schedules/{schedule}/update', [CustomerScheduleController::class, 'update'])->name('schedules.update');
         // Cancel schedule
-        Route::post('/schedules/{schedule}/cancel', [\App\Http\Controllers\SuperAdmin\ScheduleController::class, 'customerScheduleCancel'])->name('schedules.cancel');
+        Route::post('/schedules/{schedule}/cancel', [CustomerScheduleController::class, 'cancel'])->name('schedules.cancel');
         
         // Orders Management (Customer can view their orders)
+        Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
         
         // Announcements (Customer can view announcements)
-        Route::get('/announcements', [\App\Http\Controllers\CustomerController::class, 'announcements'])->name('announcements');
+        Route::get('/announcements', [CustomerAnnouncementController::class, 'index'])->name('announcements');
         
         // Profile routes
         Route::get('/profile', function () {

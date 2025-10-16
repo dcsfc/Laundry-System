@@ -546,4 +546,7 @@
             }
         });
     </script>
+
+    <!-- Include CSS for consistent scrollbar styling -->
+    @vite(['resources/css/customer-schedules.css'])
 @endsection

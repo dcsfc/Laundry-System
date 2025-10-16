@@ -3,16 +3,11 @@
 @section('title', 'User Management')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/tables.css') }}">
-<link rel="stylesheet" href="{{ asset('css/search-filters.css') }}">
+@vite(['resources/css/tables.css', 'resources/css/search-filters.css'])
 @endpush
 
 @push('scripts')
-<script src="{{ asset('js/action-menu.js') }}"></script>
-<script src="{{ asset('js/tables-modular.js') }}"></script>
-<script src="{{ asset('js/table-data-fetcher.js') }}"></script>
-<script src="{{ asset('js/modern-notifications.js') }}"></script>
-<script src="{{ asset('js/notification-demo.js') }}"></script>
+@vite(['resources/js/modules/table/action-menu.js', 'resources/js/modules/table/tables-modular.js', 'resources/js/modules/table/table-data-fetcher.js', 'resources/js/modules/notifications/modern-notifications.js', 'resources/js/modules/notifications/notification-demo.js'])
 <script>
     // ActionMenuManager is now loaded from action-menu.js
     

@@ -36,6 +36,18 @@ class User extends Authenticatable
         return $this->hasMany(Order::class, 'staff_id');
     }
 
+    // Alias for staff - orders they are assigned to handle
+    public function ordersAssigned()
+    {
+        return $this->hasMany(Order::class, 'staff_id');
+    }
+
+    // Orders created by this user (staff/admin who created the order)
+    public function createdOrders()
+    {
+        return $this->hasMany(Order::class, 'created_by');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
