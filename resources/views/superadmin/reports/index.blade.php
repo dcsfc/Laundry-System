@@ -7,7 +7,7 @@
         <!-- Reports Management using Reusable Data Table -->
         <x-data-table
             :columns="$columns"
-            :data="$reports"
+            :items="$reports"
             :actions="$actions"
             :bulk-actions="false"
             :searchable="true"

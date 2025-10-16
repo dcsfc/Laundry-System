@@ -2,45 +2,71 @@
 
 @section('title', 'Orders Management - Administrator')
 
+@push('styles')
+@vite(['resources/css/tables.css', 'resources/css/search-filters.css', 'resources/css/status-badges.css'])
+@endpush
+
+@push('scripts')
+@vite(['resources/js/modules/table/action-menu.js', 'resources/js/modules/table/tables-modular.js', 'resources/js/modules/notifications/modern-notifications.js'])
+@endpush
+
 @section('content')
     <div class="container">
         <!-- Orders Management using Reusable Data Table -->
         <x-data-table
             :columns="$columns"
-            :data="$orders"
+            :items="$orders"
             :actions="$actions"
             :bulk-actions="false"
             :searchable="true"
             :sortable="true"
             :pagination="true"
             :page-size="10"
-            :current-page="1"
             :empty-message="'No orders found'"
+            :empty-description="'No customer orders have been created yet'"
             :hover-effects="true"
             :alternating-rows="true"
             :sticky-header="true"
-            :custom-class="'bg-gray-800 text-gray-200'"
+            :custom-class="'bg-slate-800 text-slate-200'"
             :title="'Orders Management'"
+            :description="'Manage customer orders and track their progress'"
             :add-button="false"
-            formType="order"
-            colorScheme="indigo"
+            :show-role-filter="false"
+            color-scheme="sky"
         />
     </div>
 
-    <script>
-        // Orders Management Functions for Data Table Component
-        function viewOrder(row) {
-            console.log('View order:', row);
-            alert('View order: ' + row.id + ' - Customer: ' + row.customer_name);
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('[data-datatable]');
+    
+    // Handle order-specific actions
+    container.addEventListener('datatable:action', function(e) {
+        const { rowId, action, row } = e.detail;
+        
+        switch(action) {
+            case 'view':
+                viewOrder(row);
+                break;
+            case 'edit':
+                editOrder(row);
+                break;
         }
+    });
+});
 
-        function updateOrderStatus(row) {
-            console.log('Update status for order:', row);
-            const newStatus = prompt('Enter new status (scheduled/priced/in_progress/completed):', row.status);
-            if (newStatus !== null) {
-                alert(`Order ${row.id} status updated to ${newStatus}`);
-            }
-        }
-    </script>
+// Orders Management Functions
+function viewOrder(row) {
+    console.log('View order:', row);
+    alert('View order: ' + row.id + ' - Customer: ' + row.customer_name);
+}
+
+function editOrder(row) {
+    console.log('Edit order:', row);
+    alert('Edit order: ' + row.id + ' - Customer: ' + row.customer_name);
+}
+</script>
+@endpush
 @endsection
 

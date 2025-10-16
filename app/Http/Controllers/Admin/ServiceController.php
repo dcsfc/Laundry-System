@@ -13,8 +13,42 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        $services = Service::orderBy('name')->paginate(15);
-        return view('admin.services.index', compact('services'));
+        $services = Service::orderBy('name')
+            ->get()
+            ->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'name' => $service->name,
+                    'description' => $service->description ?? 'No description',
+                    'price' => $service->price ? number_format((float)$service->price, 2) : 'N/A',
+                    'status' => $service->is_active ? 'Active' : 'Inactive',
+                    'status_color' => $service->is_active ? 'green' : 'red',
+                    'created_at' => $service->created_at->format('M j, Y'),
+                    'updated_at' => $service->updated_at->format('M j, Y g:i A'),
+                ];
+            })->toArray();
+
+        // Define columns for the data table
+        $columns = [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true],
+            ['key' => 'name', 'label' => 'Service Name', 'sortable' => true, 'searchable' => true],
+            ['key' => 'description', 'label' => 'Description', 'sortable' => true],
+            ['key' => 'price', 'label' => 'Price', 'sortable' => true],
+            ['key' => 'status', 'label' => 'Status', 'sortable' => true, 'type' => 'badge'],
+            ['key' => 'updated_at', 'label' => 'Last Updated', 'sortable' => true],
+        ];
+
+        // Define actions for the data table
+        $actions = [
+            ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit', 'icon' => 'fas fa-edit', 'color' => 'yellow'],
+            ['key' => 'toggle_status', 'label' => 'Toggle Status', 'icon' => 'fas fa-toggle-on', 'color' => 'green'],
+            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'fas fa-trash', 'color' => 'red'],
+        ];
+
+        $description = 'Manage laundry services, pricing, and availability';
+
+        return view('admin.services.index', compact('services', 'columns', 'actions', 'description'));
     }
 
     /**

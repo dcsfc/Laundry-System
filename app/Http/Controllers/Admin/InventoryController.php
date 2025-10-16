@@ -13,8 +13,57 @@ class InventoryController extends Controller
      */
     public function index()
     {
-        $items = Inventory::orderBy('item_name')->paginate(15);
-        return view('admin.inventory.index', compact('items'));
+        $inventory = Inventory::orderBy('item_name')
+            ->get()
+            ->map(function ($item) {
+                $status = 'In Stock';
+                $statusColor = 'green';
+                
+                if ($item->threshold && $item->quantity <= $item->threshold) {
+                    $status = 'Low Stock';
+                    $statusColor = 'yellow';
+                }
+                
+                if ($item->quantity == 0) {
+                    $status = 'Out of Stock';
+                    $statusColor = 'red';
+                }
+                
+                return [
+                    'id' => $item->id,
+                    'item_name' => $item->item_name,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit,
+                    'threshold' => $item->threshold ?? 'N/A',
+                    'status' => $status,
+                    'status_color' => $statusColor,
+                    'created_at' => $item->created_at->format('M j, Y'),
+                    'updated_at' => $item->updated_at->format('M j, Y g:i A'),
+                ];
+            })->toArray();
+
+        // Define columns for the data table
+        $columns = [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true],
+            ['key' => 'item_name', 'label' => 'Item Name', 'sortable' => true, 'searchable' => true],
+            ['key' => 'quantity', 'label' => 'Quantity', 'sortable' => true],
+            ['key' => 'unit', 'label' => 'Unit', 'sortable' => true],
+            ['key' => 'threshold', 'label' => 'Threshold', 'sortable' => true],
+            ['key' => 'status', 'label' => 'Status', 'sortable' => true, 'type' => 'badge'],
+            ['key' => 'updated_at', 'label' => 'Last Updated', 'sortable' => true],
+        ];
+
+        // Define actions for the data table
+        $actions = [
+            ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit', 'icon' => 'fas fa-edit', 'color' => 'yellow'],
+            ['key' => 'update_stock', 'label' => 'Update Stock', 'icon' => 'fas fa-boxes', 'color' => 'green'],
+            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'fas fa-trash', 'color' => 'red'],
+        ];
+
+        $description = 'Manage inventory items, track stock levels, and set low-stock alerts';
+
+        return view('admin.inventory.index', compact('inventory', 'columns', 'actions', 'description'));
     }
 
     /**

@@ -7,7 +7,7 @@
         <!-- Payments Management using Reusable Data Table -->
         <x-data-table
             :columns="$columns"
-            :data="$payments"
+            :items="$payments"
             :actions="$actions"
             :bulk-actions="false"
             :searchable="true"

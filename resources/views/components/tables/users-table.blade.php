@@ -24,7 +24,7 @@
 
 <x-data-table
     :columns="$columns"
-    :data="$users"
+    :items="$users"
     :actions="$actions"
     :available-roles="$roles"
     :color-scheme="$colorScheme"

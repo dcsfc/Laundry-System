@@ -24,7 +24,7 @@
 
 <x-data-table
     :columns="$columns"
-    :data="$inventory"
+    :items="$inventory"
     :actions="$actions"
     :color-scheme="$colorScheme"
     title="Inventory Management"

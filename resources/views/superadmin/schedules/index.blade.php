@@ -7,7 +7,7 @@
         <!-- Schedules Management using Reusable Data Table -->
         <x-data-table
             :columns="$columns"
-            :data="$schedules"
+            :items="$schedules"
             :actions="$actions"
             :bulk-actions="false"
             :searchable="true"

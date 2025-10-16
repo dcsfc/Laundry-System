@@ -7,7 +7,7 @@
         <!-- Service Management using Reusable Data Table -->
         <x-data-table
             :columns="$columns"
-            :data="$services"
+            :items="$services"
             :actions="$actions"
             :bulk-actions="false"
             :searchable="true"

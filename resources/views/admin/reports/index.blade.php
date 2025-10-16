@@ -2,61 +2,78 @@
 
 @section('title', 'Reports Management - Administrator')
 
+@push('styles')
+@vite(['resources/css/tables.css', 'resources/css/search-filters.css', 'resources/css/status-badges.css'])
+@endpush
+
+@push('scripts')
+@vite(['resources/js/modules/table/action-menu.js', 'resources/js/modules/table/tables-modular.js', 'resources/js/modules/notifications/modern-notifications.js'])
+@endpush
+
 @section('content')
     <div class="container">
         <!-- Reports Management using Reusable Data Table -->
         <x-data-table
             :columns="$columns"
-            :data="$reports"
+            :items="$reports"
             :actions="$actions"
             :bulk-actions="false"
             :searchable="true"
             :sortable="true"
             :pagination="true"
             :page-size="10"
-            :current-page="1"
             :empty-message="'No reports found'"
+            :empty-description="'Generate your first report to get started'"
             :hover-effects="true"
             :alternating-rows="true"
             :sticky-header="true"
-            :custom-class="'bg-gray-800 text-gray-200'"
+            :custom-class="'bg-slate-800 text-slate-200'"
             :title="'Reports Management'"
+            :description="'View and analyze performance reports'"
             :add-button="true"
             :add-button-label="'Generate Report'"
             :add-button-action="'addReport'"
-            formType="report"
-            colorScheme="purple"
+            :show-role-filter="false"
+            color-scheme="sky"
         />
     </div>
 
-    <script>
-        // Reports Management Functions for Data Table Component
-        function viewReport(row) {
-            console.log('View report:', row);
-            alert('View report: ' + row.id + ' - ' + row.report_name);
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('[data-datatable]');
+    
+    // Handle report-specific actions
+    container.addEventListener('datatable:action', function(e) {
+        const { rowId, action, row } = e.detail;
+        
+        switch(action) {
+            case 'view':
+                viewReport(row);
+                break;
+            case 'export':
+                downloadReport(row);
+                break;
         }
+    });
+});
 
-        function downloadReport(row) {
-            console.log('Download report:', row);
-            alert('Download report: ' + row.id + ' - ' + row.report_name);
-        }
+// Reports Management Functions
+function viewReport(row) {
+    console.log('View report:', row);
+    alert('View report: ' + row.id + ' - ' + row.report_name);
+}
 
-        function editReport(row) {
-            console.log('Edit report:', row);
-            alert('Edit report: ' + row.id + ' - ' + row.report_name);
-        }
+function downloadReport(row) {
+    console.log('Download report:', row);
+    alert('Download report: ' + row.id + ' - ' + row.report_name);
+}
 
-        function deleteReport(row) {
-            console.log('Delete report:', row);
-            if (confirm('Are you sure you want to delete report ' + row.id + '? This action cannot be undone.')) {
-                alert('Report ' + row.id + ' deleted');
-            }
-        }
-
-        function addReport() {
-            console.log('Generate new report');
-            alert('Generate new report form would open here');
-        }
-    </script>
+function addReport() {
+    console.log('Generate new report');
+    alert('Generate new report form would open here');
+}
+</script>
+@endpush
 @endsection
 

@@ -14,7 +14,7 @@
 <!-- Inventory Management using Reusable Data Table -->
 <x-data-table
     :columns="$columns"
-    :data="$inventory"
+    :items="$inventory"
     :actions="$actions"
     :bulk-actions="false"
     :searchable="true"

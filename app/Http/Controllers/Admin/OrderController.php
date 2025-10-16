@@ -17,9 +17,44 @@ class OrderController extends Controller
     {
         $orders = Order::with(['customer', 'service', 'staff'])
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'customer_name' => $order->customer->name ?? 'N/A',
+                    'customer_email' => $order->customer->email ?? 'N/A',
+                    'service_name' => $order->service->name ?? 'General Laundry',
+                    'staff_name' => $order->staff->name ?? 'Unassigned',
+                    'dropoff_date' => $order->dropoff_date ? \Carbon\Carbon::parse($order->dropoff_date)->format('M j, Y') : 'N/A',
+                    'pickup_date' => $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('M j, Y') : 'N/A',
+                    'status' => ucfirst(str_replace('_', ' ', $order->status)),
+                    'payment_status' => ucfirst($order->payment_status ?? 'Unpaid'),
+                    'total_price' => $order->total_price ? number_format((float)$order->total_price, 2) : 'N/A',
+                    'created_at' => $order->created_at->format('M j, Y g:i A'),
+                ];
+            })->toArray();
 
-        return view('admin.orders.index', compact('orders'));
+        // Define columns for the data table
+        $columns = [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true],
+            ['key' => 'customer_name', 'label' => 'Customer', 'sortable' => true, 'searchable' => true],
+            ['key' => 'service_name', 'label' => 'Service', 'sortable' => true],
+            ['key' => 'staff_name', 'label' => 'Staff', 'sortable' => true],
+            ['key' => 'dropoff_date', 'label' => 'Drop-off', 'sortable' => true],
+            ['key' => 'pickup_date', 'label' => 'Pickup', 'sortable' => true],
+            ['key' => 'status', 'label' => 'Status', 'sortable' => true, 'type' => 'badge'],
+            ['key' => 'payment_status', 'label' => 'Payment', 'sortable' => true, 'type' => 'badge'],
+            ['key' => 'total_price', 'label' => 'Price', 'sortable' => true],
+            ['key' => 'created_at', 'label' => 'Created', 'sortable' => true],
+        ];
+
+        // Define actions for the data table
+        $actions = [
+            ['key' => 'view', 'label' => 'View Details', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit Order', 'icon' => 'fas fa-edit', 'color' => 'yellow'],
+        ];
+
+        return view('admin.orders.index', compact('orders', 'columns', 'actions'));
     }
 
     /**

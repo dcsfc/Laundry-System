@@ -17,9 +17,44 @@ class StaffController extends Controller
     {
         $staff = User::whereHas('role', function($query) {
             $query->where('name', 'staff');
-        })->with('role')->paginate(15);
+        })->with(['role', 'createdBy'])
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone_number' => $user->phone_number ?? 'N/A',
+                    'status' => ucfirst($user->status ?? 'Active'),
+                    'status_color' => $user->status === 'active' ? 'green' : 'red',
+                    'created_by' => $user->createdBy ? $user->createdBy->name : 'System',
+                    'created_at' => $user->created_at->format('M j, Y'),
+                    'last_login' => $user->last_login ? \Carbon\Carbon::parse($user->last_login)->format('M j, Y g:i A') : 'Never',
+                ];
+            })->toArray();
 
-        return view('admin.staff.index', compact('staff'));
+        // Define columns for the data table
+        $columns = [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true],
+            ['key' => 'name', 'label' => 'Name', 'sortable' => true, 'searchable' => true],
+            ['key' => 'email', 'label' => 'Email', 'sortable' => true, 'searchable' => true],
+            ['key' => 'phone_number', 'label' => 'Phone', 'sortable' => true],
+            ['key' => 'status', 'label' => 'Status', 'sortable' => true, 'type' => 'badge'],
+            ['key' => 'created_by', 'label' => 'Created By', 'sortable' => true],
+            ['key' => 'last_login', 'label' => 'Last Login', 'sortable' => true],
+        ];
+
+        // Define actions for the data table
+        $actions = [
+            ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit', 'icon' => 'fas fa-edit', 'color' => 'yellow'],
+            ['key' => 'toggle_status', 'label' => 'Toggle Status', 'icon' => 'fas fa-toggle-on', 'color' => 'green'],
+            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'fas fa-trash', 'color' => 'red'],
+        ];
+
+        $description = 'Manage staff members, their accounts, and permissions';
+
+        return view('admin.staff.index', compact('staff', 'columns', 'actions', 'description'));
     }
 
     /**

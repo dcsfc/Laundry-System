@@ -23,7 +23,7 @@
 
 <x-data-table
     :columns="$columns"
-    :data="$services"
+    :items="$services"
     :actions="$actions"
     :color-scheme="$colorScheme"
     title="Service Management"
