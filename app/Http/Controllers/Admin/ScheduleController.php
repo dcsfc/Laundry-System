@@ -91,10 +91,10 @@ class ScheduleController extends Controller
 
         // Define actions for the data table
         $actions = [
-            ['label' => 'View', 'onclick' => 'viewSchedule'],
-            ['label' => 'Edit', 'onclick' => 'editSchedule'],
-            ['label' => 'Update Status', 'onclick' => 'updateScheduleStatus'],
-            ['label' => 'Delete', 'onclick' => 'deleteSchedule']
+            ['key' => 'viewSchedule', 'label' => 'View', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'editSchedule', 'label' => 'Edit', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'updateScheduleStatus', 'label' => 'Update Status', 'icon' => 'toggle', 'color' => 'green'],
+            ['key' => 'deleteSchedule', 'label' => 'Delete', 'icon' => 'delete', 'color' => 'red']
         ];
 
         return view('admin.schedules.index', compact('schedules', 'columns', 'actions'));

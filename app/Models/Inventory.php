@@ -13,6 +13,7 @@ class Inventory extends Model
 
     protected $fillable = [
         'item_name',
+        'price',
         'quantity',
         'unit',
         'threshold'
@@ -20,7 +21,8 @@ class Inventory extends Model
 
     protected $casts = [
         'quantity' => 'integer',
-        'threshold' => 'integer'
+        'threshold' => 'integer',
+        'price' => 'decimal:2'
     ];
 
     /**

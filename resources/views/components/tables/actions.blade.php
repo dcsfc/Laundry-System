@@ -1,4 +1,4 @@
-<!-- Action Menu - Hidden 3 dots, show direct action buttons -->
+<!-- Action Menu - Direct action buttons with SVG icons -->
 <div class="actions-dropdown">
     <!-- Direct action buttons instead of dropdown -->
     <div class="direct-actions">
@@ -9,8 +9,8 @@
                 :class="`action-${action.color || 'blue'}`"
                 @click="handleAction(action.key, row)"
                 :title="action.label"
+                x-html="getActionIconSvg(action.icon)"
             >
-                <i :class="action.icon" class="action-icon"></i>
             </button>
         </template>
     </div>

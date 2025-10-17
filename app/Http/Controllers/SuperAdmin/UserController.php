@@ -1056,10 +1056,10 @@ class UserController extends Controller
 
         // Define actions for the data table
         $actions = [
-            ['key' => 'viewUser', 'label' => 'View', 'onclick' => 'viewUser'],
-            ['key' => 'editUser', 'label' => 'Edit', 'onclick' => 'editUser'],
-            ['key' => 'viewUserActivity', 'label' => 'View Activity', 'onclick' => 'viewUserActivity'],
-            ['key' => 'deactivateUser', 'label' => 'Deactivate', 'onclick' => 'deactivateUser']
+            ['key' => 'viewUser', 'label' => 'View', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'editUser', 'label' => 'Edit', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'viewUserActivity', 'label' => 'View Activity', 'icon' => 'settings', 'color' => 'green'],
+            ['key' => 'deactivateUser', 'label' => 'Toggle Status', 'icon' => 'toggle', 'color' => 'orange']
         ];
 
         $description = 'Manage staff and customer accounts, view their activity, and handle user support';

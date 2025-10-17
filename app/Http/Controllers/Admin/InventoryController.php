@@ -32,6 +32,7 @@ class InventoryController extends Controller
                 return [
                     'id' => $item->id,
                     'item_name' => $item->item_name,
+                    'price' => $item->price ? '₱' . number_format($item->price, 2) : 'N/A',
                     'quantity' => $item->quantity,
                     'unit' => $item->unit,
                     'threshold' => $item->threshold ?? 'N/A',
@@ -46,19 +47,18 @@ class InventoryController extends Controller
         $columns = [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true],
             ['key' => 'item_name', 'label' => 'Item Name', 'sortable' => true, 'searchable' => true],
+            ['key' => 'price', 'label' => 'Price', 'sortable' => true],
             ['key' => 'quantity', 'label' => 'Quantity', 'sortable' => true],
-            ['key' => 'unit', 'label' => 'Unit', 'sortable' => true],
-            ['key' => 'threshold', 'label' => 'Threshold', 'sortable' => true],
             ['key' => 'status', 'label' => 'Status', 'sortable' => true, 'type' => 'badge'],
             ['key' => 'updated_at', 'label' => 'Last Updated', 'sortable' => true],
         ];
 
         // Define actions for the data table
         $actions = [
-            ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
-            ['key' => 'edit', 'label' => 'Edit', 'icon' => 'fas fa-edit', 'color' => 'yellow'],
-            ['key' => 'update_stock', 'label' => 'Update Stock', 'icon' => 'fas fa-boxes', 'color' => 'green'],
-            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'fas fa-trash', 'color' => 'red'],
+            ['key' => 'view', 'label' => 'View', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'update_stock', 'label' => 'Update Stock', 'icon' => 'settings', 'color' => 'green'],
+            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'delete', 'color' => 'red'],
         ];
 
         $description = 'Manage inventory items, track stock levels, and set low-stock alerts';
@@ -81,6 +81,7 @@ class InventoryController extends Controller
     {
         $validated = $request->validate([
             'item_name' => 'required|string|max:100',
+            'price' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:0',
             'unit' => 'required|string|max:50',
             'threshold' => 'nullable|integer|min:0',
@@ -115,6 +116,7 @@ class InventoryController extends Controller
     {
         $validated = $request->validate([
             'item_name' => 'required|string|max:100',
+            'price' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:0',
             'unit' => 'required|string|max:50',
             'threshold' => 'nullable|integer|min:0',

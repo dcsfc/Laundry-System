@@ -40,10 +40,10 @@ class ServiceController extends Controller
 
         // Define actions for the data table
         $actions = [
-            ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
-            ['key' => 'edit', 'label' => 'Edit', 'icon' => 'fas fa-edit', 'color' => 'yellow'],
-            ['key' => 'toggle_status', 'label' => 'Toggle Status', 'icon' => 'fas fa-toggle-on', 'color' => 'green'],
-            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'fas fa-trash', 'color' => 'red'],
+            ['key' => 'view', 'label' => 'View', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'toggle_status', 'label' => 'Toggle Status', 'icon' => 'toggle', 'color' => 'green'],
+            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'delete', 'color' => 'red'],
         ];
 
         $description = 'Manage laundry services, pricing, and availability';

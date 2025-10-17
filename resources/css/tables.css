@@ -531,6 +531,9 @@
 
 .action-icon {
   font-size: 12px;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
 }
 
 /* ========== PORTAL MENU SYSTEM ========== */

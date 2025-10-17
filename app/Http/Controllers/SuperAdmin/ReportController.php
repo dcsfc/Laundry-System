@@ -70,10 +70,10 @@ class ReportController extends Controller
 
         // Define actions for the data table
         $actions = [
-            ['label' => 'View', 'onclick' => 'viewReport'],
-            ['label' => 'Download', 'onclick' => 'downloadReport'],
-            ['label' => 'Edit', 'onclick' => 'editReport'],
-            ['label' => 'Delete', 'onclick' => 'deleteReport']
+            ['key' => 'viewReport', 'label' => 'View', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'downloadReport', 'label' => 'Download', 'icon' => 'download', 'color' => 'green'],
+            ['key' => 'editReport', 'label' => 'Edit', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'deleteReport', 'label' => 'Delete', 'icon' => 'delete', 'color' => 'red']
         ];
 
         return view('superadmin.reports.index', compact('reports', 'columns', 'actions'));

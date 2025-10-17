@@ -51,10 +51,10 @@ class PaymentController extends Controller
 
         // Define actions for the data table
         $actions = [
-            ['label' => 'View', 'onclick' => 'viewPayment'],
-            ['label' => 'Edit', 'onclick' => 'editPayment'],
-            ['label' => 'Update Status', 'onclick' => 'updatePaymentStatus'],
-            ['label' => 'Delete', 'onclick' => 'deletePayment']
+            ['key' => 'viewPayment', 'label' => 'View', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'editPayment', 'label' => 'Edit', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'updatePaymentStatus', 'label' => 'Update Status', 'icon' => 'toggle', 'color' => 'green'],
+            ['key' => 'deletePayment', 'label' => 'Delete', 'icon' => 'delete', 'color' => 'red']
         ];
 
         $description = 'Monitor payment transactions, methods, and payment status for laundry services';

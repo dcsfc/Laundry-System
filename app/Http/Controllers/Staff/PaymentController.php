@@ -64,9 +64,9 @@ class PaymentController extends Controller
 
         // Define actions for payments
         $actions = [
-            ['key' => 'view', 'label' => 'View Details', 'icon' => 'fas fa-eye'],
-            ['key' => 'edit', 'label' => 'Edit Payment', 'icon' => 'fas fa-edit'],
-            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'fas fa-trash'],
+            ['key' => 'view', 'label' => 'View Details', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit Payment', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'delete', 'color' => 'red'],
         ];
 
         return view('staff.payments.index', compact(

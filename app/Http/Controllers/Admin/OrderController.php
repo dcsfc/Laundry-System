@@ -50,8 +50,8 @@ class OrderController extends Controller
 
         // Define actions for the data table
         $actions = [
-            ['key' => 'view', 'label' => 'View Details', 'icon' => 'fas fa-eye', 'color' => 'blue'],
-            ['key' => 'edit', 'label' => 'Edit Order', 'icon' => 'fas fa-edit', 'color' => 'yellow'],
+            ['key' => 'view', 'label' => 'View Details', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit Order', 'icon' => 'edit', 'color' => 'yellow'],
         ];
 
         return view('admin.orders.index', compact('orders', 'columns', 'actions'));

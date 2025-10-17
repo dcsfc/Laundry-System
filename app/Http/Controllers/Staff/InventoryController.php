@@ -36,6 +36,7 @@ class InventoryController extends Controller
                 return [
                     'id' => $item->id,
                     'item_name' => $item->item_name,
+                    'price' => $item->price ? '₱' . number_format($item->price, 2) : 'N/A',
                     'quantity' => $item->quantity,
                     'unit' => $item->unit,
                     'threshold' => $item->threshold,
@@ -51,6 +52,7 @@ class InventoryController extends Controller
         $columns = [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true],
             ['key' => 'item_name', 'label' => 'Item Name', 'sortable' => true],
+            ['key' => 'price', 'label' => 'Price', 'sortable' => true],
             ['key' => 'quantity', 'label' => 'Quantity', 'sortable' => true],
             ['key' => 'unit', 'label' => 'Unit', 'sortable' => true],
             ['key' => 'threshold', 'label' => 'Threshold', 'sortable' => true],
@@ -60,10 +62,10 @@ class InventoryController extends Controller
 
         // Define actions for inventory
         $actions = [
-            ['key' => 'view', 'label' => 'View Details', 'icon' => 'fas fa-eye'],
-            ['key' => 'edit', 'label' => 'Edit Item', 'icon' => 'fas fa-edit'],
-            ['key' => 'update_stock', 'label' => 'Update Stock', 'icon' => 'fas fa-boxes'],
-            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'fas fa-trash'],
+            ['key' => 'view', 'label' => 'View Details', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'edit', 'label' => 'Edit Item', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'update_stock', 'label' => 'Update Stock', 'icon' => 'settings', 'color' => 'green'],
+            ['key' => 'delete', 'label' => 'Delete', 'icon' => 'delete', 'color' => 'red'],
         ];
 
         return view('staff.inventory.index', compact(

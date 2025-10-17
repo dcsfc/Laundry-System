@@ -81,8 +81,8 @@ class ReportController extends Controller
 
         // Define actions for reports
         $actions = [
-            ['key' => 'view', 'label' => 'View Details', 'icon' => 'fas fa-eye'],
-            ['key' => 'export', 'label' => 'Export Report', 'icon' => 'fas fa-download'],
+            ['key' => 'view', 'label' => 'View Details', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'export', 'label' => 'Export Report', 'icon' => 'download', 'color' => 'green'],
         ];
 
         return view('staff.reports.index', compact(

@@ -50,10 +50,10 @@ class InventoryController extends Controller
 
         // Define actions for the data table
         $actions = [
-            ['label' => 'View', 'onclick' => 'viewItem'],
-            ['label' => 'Edit', 'onclick' => 'editItem'],
-            ['label' => 'Update Stock', 'onclick' => 'updateStock'],
-            ['label' => 'Delete', 'onclick' => 'deleteItem']
+            ['key' => 'viewItem', 'label' => 'View', 'icon' => 'view', 'color' => 'blue'],
+            ['key' => 'editItem', 'label' => 'Edit', 'icon' => 'edit', 'color' => 'yellow'],
+            ['key' => 'updateStock', 'label' => 'Update Stock', 'icon' => 'settings', 'color' => 'green'],
+            ['key' => 'deleteItem', 'label' => 'Delete', 'icon' => 'delete', 'color' => 'red']
         ];
 
         $description = 'Manage laundry supplies, detergents, and cleaning products inventory';
