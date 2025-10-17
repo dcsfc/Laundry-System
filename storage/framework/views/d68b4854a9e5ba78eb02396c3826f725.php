@@ -120,7 +120,11 @@ unset($__defined_vars, $__key, $__value); ?>
 <!-- DEBUG INFO -->
 <!-- RECEIVED $items: type=<?php echo e(gettype($items)); ?>, count=<?php echo e(is_countable($items) ? count($items) : 'N/A'); ?> -->
 <!-- PROCESSED $tableData: count=<?php echo e(count($tableData)); ?> -->
-<!-- First item: <?php echo e(count($tableData) > 0 ? substr(json_encode($tableData[0]), 0, 200) : 'EMPTY'); ?> -->
+<!-- Global $actions count: <?php echo e(count($actions)); ?> -->
+<!-- First item keys: <?php echo e(count($tableData) > 0 ? implode(', ', array_keys($tableData[0])) : 'EMPTY'); ?> -->
+<?php if(count($tableData) > 0 && isset($tableData[0]['actions'])): ?>
+<!-- First item has <?php echo e(count($tableData[0]['actions'])); ?> actions -->
+<?php endif; ?>
 <!-- END DEBUG -->
 
 <div class="table-container <?php echo e($customClass); ?>" 

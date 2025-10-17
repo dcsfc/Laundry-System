@@ -314,5 +314,28 @@ Route::get('/debug-customer-schedules', function () {
     return response()->json($debug, 200, [], JSON_PRETTY_PRINT);
 })->middleware('auth:customer');
 
+// Debug route for staff schedules
+Route::get('/debug-staff-schedule/{id}', function ($id) {
+    try {
+        $order = \App\Models\Order::findOrFail($id);
+        $order->load(['customer', 'staff', 'service']);
+        
+        return response()->json([
+            'success' => true,
+            'order' => [
+                'id' => $order->id,
+                'status' => $order->status,
+                'total_price' => $order->total_price,
+                'weight' => $order->weight,
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Authentication routes
 require __DIR__.'/auth.php';

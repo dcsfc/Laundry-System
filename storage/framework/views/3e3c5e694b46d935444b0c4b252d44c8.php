@@ -1,13 +1,11 @@
-@extends('layouts.sidebar')
+<?php $__env->startSection('title', 'Schedule Management - Staff'); ?>
 
-@section('title', 'Schedule Management - Staff')
+<?php $__env->startPush('styles'); ?>
+<?php echo app('Illuminate\Foundation\Vite')(['resources/css/tables.css', 'resources/css/search-filters.css', 'resources/css/status-badges.css']); ?>
+<?php $__env->stopPush(); ?>
 
-@push('styles')
-@vite(['resources/css/tables.css', 'resources/css/search-filters.css', 'resources/css/status-badges.css'])
-@endpush
-
-@push('scripts')
-@vite(['resources/js/modules/table/action-menu.js', 'resources/js/modules/table/tables-modular.js', 'resources/js/modules/table/table-data-fetcher.js', 'resources/js/modules/notifications/modern-notifications.js', 'resources/js/modules/notifications/notification-demo.js'])
+<?php $__env->startPush('scripts'); ?>
+<?php echo app('Illuminate\Foundation\Vite')(['resources/js/modules/table/action-menu.js', 'resources/js/modules/table/tables-modular.js', 'resources/js/modules/table/table-data-fetcher.js', 'resources/js/modules/notifications/modern-notifications.js', 'resources/js/modules/notifications/notification-demo.js']); ?>
 <script>
     // Global function to open rejection modal
     window.openRejectionModal = function(orderId, orderData) {
@@ -38,9 +36,9 @@
         }
     };
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
 <div class="space-y-8">
     <!-- Statistics Cards -->
@@ -50,7 +48,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-amber-400 text-sm font-medium">Pending Approvals</p>
-                    <p class="text-2xl font-bold text-white" id="pendingCount">{{ $pendingCount }}</p>
+                    <p class="text-2xl font-bold text-white" id="pendingCount"><?php echo e($pendingCount); ?></p>
                 </div>
                 <div class="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center">
                     <i class="fas fa-clock text-amber-400 text-xl"></i>
@@ -99,46 +97,45 @@
     </div>
 
     <!-- All Schedules Table -->
-    <!-- VIEW DEBUG: $allSchedules count = {{ count($allSchedules ?? []) }} -->
-    <!-- VIEW DEBUG: Is array? {{ is_array($allSchedules ?? null) ? 'YES' : 'NO' }} -->
-    <!-- VIEW DEBUG: First item = {{ !empty($allSchedules) && is_array($allSchedules) && count($allSchedules) > 0 ? json_encode($allSchedules[0]) : 'EMPTY OR NOT ARRAY' }} -->
+    <!-- VIEW DEBUG: $allSchedules count = <?php echo e(count($allSchedules ?? [])); ?> -->
+    <!-- VIEW DEBUG: Is array? <?php echo e(is_array($allSchedules ?? null) ? 'YES' : 'NO'); ?> -->
+    <!-- VIEW DEBUG: First item = <?php echo e(!empty($allSchedules) && is_array($allSchedules) && count($allSchedules) > 0 ? json_encode($allSchedules[0]) : 'EMPTY OR NOT ARRAY'); ?> -->
     
-    <x-data-table
-        :columns="$scheduleColumns"
-        :items="$allSchedules"
-        :actions="$scheduleActions"
-        :bulk-actions="false"
-        :searchable="true"
-        :sortable="true"
-        :pagination="true"
-        :page-size="10"
-        :empty-message="'No schedules found'"
-        :empty-description="'No customer schedules have been created yet'"
-        :hover-effects="true"
-        :alternating-rows="true"
-        :sticky-header="true"
-        :custom-class="'bg-slate-800 text-slate-200'"
-        :title="'Schedule Management'"
-        :description="'Manage all customer schedules and track their progress'"
-        :add-button="false"
-        :show-role-filter="false"
-        color-scheme="sky"
-    />
+    <?php if (isset($component)) { $__componentOriginalb539fdd4bceece4a667dd360eb69c7ae = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb539fdd4bceece4a667dd360eb69c7ae = $attributes; } ?>
+<?php $component = App\View\Components\DataTable::resolve(['columns' => $scheduleColumns,'actions' => $scheduleActions,'bulkActions' => false,'searchable' => true,'sortable' => true,'pagination' => true,'pageSize' => 10,'emptyMessage' => 'No schedules found','emptyDescription' => 'No customer schedules have been created yet','hoverEffects' => true,'alternatingRows' => true,'stickyHeader' => true,'customClass' => 'bg-slate-800 text-slate-200','title' => 'Schedule Management','description' => 'Manage all customer schedules and track their progress','addButton' => false,'showRoleFilter' => false,'colorScheme' => 'sky'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('data-table'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\DataTable::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['items' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($allSchedules)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalb539fdd4bceece4a667dd360eb69c7ae)): ?>
+<?php $attributes = $__attributesOriginalb539fdd4bceece4a667dd360eb69c7ae; ?>
+<?php unset($__attributesOriginalb539fdd4bceece4a667dd360eb69c7ae); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalb539fdd4bceece4a667dd360eb69c7ae)): ?>
+<?php $component = $__componentOriginalb539fdd4bceece4a667dd360eb69c7ae; ?>
+<?php unset($__componentOriginalb539fdd4bceece4a667dd360eb69c7ae); ?>
+<?php endif; ?>
 </div>
 
 <!-- Schedule Details Modal -->
-@include('components.schedule-details-modal')
+<?php echo $__env->make('components.schedule-details-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <!-- Pricing Modal -->
-@include('components.schedule-pricing-modal')
+<?php echo $__env->make('components.schedule-pricing-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <!-- Rejection Modal -->
-@include('components.schedule-rejection-modal')
+<?php echo $__env->make('components.schedule-rejection-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <!-- Delete Confirmation Modal -->
-@include('components.delete-confirmation-modal')
+<?php echo $__env->make('components.delete-confirmation-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 // Schedule Management Functions
 document.addEventListener('DOMContentLoaded', function() {
@@ -564,5 +561,6 @@ window.handleRejection = function(orderId, reason) {
     });
 };
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\Laundry Sytem\Thesis\resources\views/staff/schedules/index.blade.php ENDPATH**/ ?>

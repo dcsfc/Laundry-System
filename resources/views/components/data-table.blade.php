@@ -67,7 +67,11 @@
 <!-- DEBUG INFO -->
 <!-- RECEIVED $items: type={{ gettype($items) }}, count={{ is_countable($items) ? count($items) : 'N/A' }} -->
 <!-- PROCESSED $tableData: count={{ count($tableData) }} -->
-<!-- First item: {{ count($tableData) > 0 ? substr(json_encode($tableData[0]), 0, 200) : 'EMPTY' }} -->
+<!-- Global $actions count: {{ count($actions) }} -->
+<!-- First item keys: {{ count($tableData) > 0 ? implode(', ', array_keys($tableData[0])) : 'EMPTY' }} -->
+@if(count($tableData) > 0 && isset($tableData[0]['actions']))
+<!-- First item has {{ count($tableData[0]['actions']) }} actions -->
+@endif
 <!-- END DEBUG -->
 
 <div class="table-container {{ $customClass }}" 
