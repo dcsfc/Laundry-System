@@ -230,14 +230,6 @@
         </a>
       <?php endif; ?>
 
-      <!-- Payments - Admin & Staff Only -->
-      <?php if($isAdmin || $isStaff): ?>
-        <a href="<?php echo e($isAdmin ? route('admin.payments.index') : route('staff.payments.index')); ?>" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:<?php echo e($gradientHoverFrom); ?> hover:<?php echo e($gradientHoverTo); ?> hover:shadow-lg hover:shadow-<?php echo e($shadowColor); ?>-500/10 hover:translate-x-1 <?php echo e(request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.payments.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : ''); ?>">
-          <i class="sidebar-icon fas fa-credit-card w-5 text-center text-base group-hover:scale-110 transition-transform duration-300 flex-shrink-0 <?php echo e(request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.payments.*') ? 'text-white' : 'text-slate-400'); ?>"></i>
-          <span class="sidebar-text group-hover:translate-x-1 transition-transform duration-300">Payments</span>
-        </a>
-      <?php endif; ?>
-
       <!-- Inventory - Admin & Staff Only -->
       <?php if($isAdmin || $isStaff): ?>
         <a href="<?php echo e($isAdmin ? route('admin.inventory.index') : route('staff.inventory.index')); ?>" class="group flex items-center gap-3 px-4 py-3 mb-1 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:<?php echo e($gradientHoverFrom); ?> hover:<?php echo e($gradientHoverTo); ?> hover:shadow-lg hover:shadow-<?php echo e($shadowColor); ?>-500/10 hover:translate-x-1 <?php echo e(request()->routeIs(($isAdmin ? 'admin' : 'staff') . '.inventory.*') ? 'bg-gradient-to-r ' . $gradientFrom . ' ' . $gradientTo . ' text-white shadow-lg shadow-' . $shadowColor . '-500/25 font-semibold' : ''); ?>">

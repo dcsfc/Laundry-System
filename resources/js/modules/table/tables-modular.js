@@ -958,7 +958,8 @@ function dataTable(data, columns, actions, pageSize = 10) {
         sortColumn: '',
         sortDirection: 'asc',
         currentPage: 1,
-        isLoading: false,
+        isLoading: false,  // Only true during full table refresh, not per-row actions
+        rowLoadingId: null,  // Track which specific row is being updated
         activeMenuRow: null,
         
         // Computed data
@@ -1214,7 +1215,8 @@ function dataTable(data, columns, actions, pageSize = 10) {
                 },
                 
                 makeRequest(url, method, data, successMessage, rowId) {
-                    this.isLoading = true;
+                    // Use row-level loading instead of global loading for per-row actions
+                    this.rowLoadingId = rowId;
                     
                     fetch(url, {
                         method: method,
@@ -1230,7 +1232,7 @@ function dataTable(data, columns, actions, pageSize = 10) {
                             // Show success message
                             this.showNotification(successMessage, 'success');
                             
-                            // Refresh the data
+                            // Refresh the data without showing full table loading
                             this.refreshData();
                             
                             // Refresh the statistics
@@ -1246,7 +1248,7 @@ function dataTable(data, columns, actions, pageSize = 10) {
                         this.showNotification('An error occurred', 'error');
                     })
                     .finally(() => {
-                        this.isLoading = false;
+                        this.rowLoadingId = null;
                     });
                 },
                 

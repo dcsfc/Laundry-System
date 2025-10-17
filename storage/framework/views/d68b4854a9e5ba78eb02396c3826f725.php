@@ -193,8 +193,8 @@ unset($__defined_vars, $__key, $__value); ?>
             </thead>
 
             <tbody>
-                <!-- Loading State -->
-                <template x-if="isLoading">
+                <!-- Loading State - only show when no data exists AND loading -->
+                <template x-if="isLoading && paginatedData.length === 0">
                     <?php echo $__env->make('components.tables.loading-row', [
                         'columns' => $columns, 
                         'bulkActions' => $bulkActions, 

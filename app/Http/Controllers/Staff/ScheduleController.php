@@ -42,11 +42,26 @@ class ScheduleController extends Controller
             ]);
         }
 
+        $pendingCount = Order::where('status', 'pending')->count();
+        
+        // Define schedule actions for the data table
+        $scheduleActions = [
+            ['key' => 'view', 'label' => 'View', 'icon' => 'fas fa-eye', 'color' => 'blue'],
+            ['key' => 'approve', 'label' => 'Approve', 'icon' => 'fas fa-check', 'color' => 'green'],
+            ['key' => 'reject', 'label' => 'Reject', 'icon' => 'fas fa-times', 'color' => 'red'],
+            ['key' => 'add_price', 'label' => 'Add Price/Weight', 'icon' => 'fas fa-balance-scale', 'color' => 'blue'],
+            ['key' => 'start_processing', 'label' => 'Start Processing', 'icon' => 'fas fa-play', 'color' => 'green'],
+            ['key' => 'mark_ready', 'label' => 'Ready for Pickup', 'icon' => 'fas fa-box', 'color' => 'green'],
+            ['key' => 'mark_completed', 'label' => 'Mark Completed', 'icon' => 'fas fa-check-circle', 'color' => 'green'],
+            ['key' => 'cancel', 'label' => 'Cancel', 'icon' => 'fas fa-ban', 'color' => 'red'],
+        ];
+
         return view('staff.schedules.index', compact(
             'allSchedules',
             'scheduleColumns',
-            'pendingCount'
-        ))->with('pendingCount', Order::where('status', 'pending')->count());
+            'pendingCount',
+            'scheduleActions'
+        ));
     }
 
     public function approve(Request $request, $id)
@@ -60,6 +75,8 @@ class ScheduleController extends Controller
         $order->update([
             'status' => 'confirmed',
             'staff_id' => Auth::id(),
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
             'updated_at' => now(),
         ]);
 
@@ -81,6 +98,8 @@ class ScheduleController extends Controller
         $order->update([
             'status' => 'cancelled',
             'cancellation_reason' => $request->rejection_reason,
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
             'updated_at' => now(),
         ]);
 

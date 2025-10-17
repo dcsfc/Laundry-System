@@ -23,7 +23,6 @@ class Order extends Model
         'status',
         'notes',
         'created_by',
-        'approval_status',
         'approved_by',
         'approved_at',
         'rejection_reason',

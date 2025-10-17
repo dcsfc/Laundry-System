@@ -20,7 +20,7 @@ class ScheduleController extends Controller
         // Get only active schedules (exclude completed/cancelled)
         $schedules = Order::where('customer_id', $currentUser->id)
             ->whereNotIn('status', ['completed', 'cancelled'])
-            ->with(['service', 'staff', 'customer'])
+            ->with(['service', 'staff', 'customer', 'approvedBy'])
             ->orderBy('dropoff_date', 'desc')
             ->paginate(10)
             ->through(function ($order) {
@@ -37,19 +37,24 @@ class ScheduleController extends Controller
                     'total_price' => $order->total_price,
                     'status' => $this->getStatusDisplay($order->status),
                     'staff_assigned' => $order->staff->name ?? 'Unassigned',
+                    'approved_by_name' => $order->approvedBy->name ?? null,
+                    'approved_at' => $order->approved_at ? $order->approved_at->format('Y-m-d H:i:s') : null,
                     'created_at' => $order->created_at->format('Y-m-d H:i:s'),
                 ];
             });
 
-        // Get all schedules including completed/cancelled for history
+        // Get all schedules (exclude completed/cancelled) for metrics calculation
         $allSchedules = Order::where('customer_id', $currentUser->id)
-            ->with(['service', 'staff', 'customer'])
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->with(['service', 'staff', 'customer', 'approvedBy'])
             ->orderBy('dropoff_date', 'desc')
-            ->paginate(10)
-            ->through(function ($order) {
+            ->get()
+            ->map(function ($order) {
                 return [
                     'id' => $order->id,
                     'status' => $this->getStatusDisplay($order->status),
+                    'approved_by_name' => $order->approvedBy->name ?? null,
+                    'approved_at' => $order->approved_at ? $order->approved_at->format('Y-m-d H:i:s') : null,
                 ];
             });
 
@@ -145,11 +150,11 @@ class ScheduleController extends Controller
             ], 404);
         }
         
-        // Check if the order can be updated (only pending or scheduled orders)
-        if (!in_array($order->status, ['pending', 'scheduled'])) {
+        // Check if the order can be updated (only pending or confirmed orders)
+        if (!in_array($order->status, ['pending', 'confirmed'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'This schedule cannot be updated. Only pending or scheduled orders can be modified.'
+                'message' => 'This schedule cannot be updated. Only pending or confirmed orders can be modified.'
             ], 400);
         }
         
@@ -194,11 +199,11 @@ class ScheduleController extends Controller
             ], 404);
         }
         
-        // Check if the order can be cancelled (only pending or scheduled orders)
-        if (!in_array($order->status, ['pending', 'scheduled'])) {
+        // Check if the order can be cancelled (only pending or confirmed orders)
+        if (!in_array($order->status, ['pending', 'confirmed'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'This schedule cannot be cancelled. Only pending or scheduled orders can be cancelled.'
+                'message' => 'This schedule cannot be cancelled. Only pending or confirmed orders can be cancelled.'
             ], 400);
         }
         
@@ -208,8 +213,7 @@ class ScheduleController extends Controller
         // Update the order status to cancelled and store the reason
         $order->update([
             'status' => 'cancelled',
-            'approval_status' => 'rejected', // Mark as rejected since it's no longer pending approval
-            'notes' => $cancellationReason ? "Cancelled by customer: " . $cancellationReason : "Cancelled by customer"
+            'rejection_reason' => $cancellationReason ? "Cancelled by customer: " . $cancellationReason : "Cancelled by customer"
         ]);
         
         return response()->json([
@@ -225,7 +229,7 @@ class ScheduleController extends Controller
     {
         $statusMap = [
             'pending' => 'Pending Approval',
-            'confirmed' => 'Approved',
+            'confirmed' => 'Confirmed',
             'processing' => 'In Progress',
             'ready_for_pickup' => 'Ready for Pickup',
             'completed' => 'Completed',

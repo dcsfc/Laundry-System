@@ -260,7 +260,7 @@ Route::middleware(['auth:admin,customer,web'])->group(function () {
         // Update schedule
         Route::post('/schedules/{schedule}/update', [CustomerScheduleController::class, 'update'])->name('schedules.update');
         // Cancel schedule
-        Route::post('/schedules/{schedule}/cancel', [CustomerScheduleController::class, 'cancel'])->name('schedules.cancel');
+        Route::post('/schedules/{schedule}/cancel', [CustomerScheduleController::class, 'cancel'])->name('cancel');
         
         // Orders Management (Customer can view their orders)
         Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
