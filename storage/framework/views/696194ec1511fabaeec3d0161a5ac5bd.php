@@ -136,10 +136,6 @@ unset($__errorArgs, $__bag); ?>
                 </button>
             </form>
 
-            <!-- Back to Home Link -->
-            <div class="back-home">
-                <a href="/" class="back-link">← Back to Home</a>
-            </div>
         </div>
 
         <!-- Copyright -->
