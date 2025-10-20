@@ -107,10 +107,6 @@
                 </button>
             </form>
 
-            <!-- Back to Home Link -->
-            <div class="back-home">
-                <a href="{{ route('login') }}" class="back-link">Customer Login</a>
-            </div>
 
             <!-- Copyright -->
             <div class="copyright">
