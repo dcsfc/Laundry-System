@@ -489,7 +489,7 @@
                     <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Latino Laundry">
                 </div>
 
-                <h2 class="brand-title">Laundry Management Portal</h2>
+                <h2 class="brand-title">Latino Laundry Management</h2>
                 <p class="brand-subtitle">Comprehensive laundry business management for administrators and staff</p>
 
                 <ul class="feature-list">
