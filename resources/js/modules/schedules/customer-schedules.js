@@ -301,7 +301,6 @@ function getScheduleData(scheduleId) {
     // Extract price
     const price = priceCell.querySelector('.text-sm.font-medium')?.textContent.trim() || '-';
     
-    // Debug logging
     console.log('Extracted schedule data:', {
         dropoffDate,
         pickupDate

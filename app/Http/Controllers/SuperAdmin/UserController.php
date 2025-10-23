@@ -99,8 +99,6 @@ class UserController extends Controller
             ];
         })->toArray();
         
-        // Debug: Log the data being passed to the view
-        \Log::info('Users data being passed to view:', $users);
         
         return view('superadmin.users.index', compact('users', 'roles', 'columns', 'actions'));
     }
@@ -342,8 +340,6 @@ class UserController extends Controller
         try {
             $roles = \App\Models\Role::all(['id', 'name']);
             
-            // Debug logging
-            \Log::info('Available roles:', $roles->toArray());
             
             return response()->json([
                 'success' => true,
@@ -384,8 +380,6 @@ class UserController extends Controller
     public function storeAjax(Request $request)
     {
         try {
-            // Debug: Log all incoming data
-            \Log::info('storeAjax called with data:', $request->all());
             
             $isUpdate = $request->get('operation') === 'update';
             $userId = $request->get('id');
@@ -426,7 +420,6 @@ class UserController extends Controller
                     $userData['password'] = bcrypt($request->password);
                 }
                 
-                \Log::info('User data before update:', $userData);
                 
                 // Get old values for comparison BEFORE updating
                 $oldRole = $user->role->name ?? 'Unknown';
@@ -435,14 +428,6 @@ class UserController extends Controller
                 $oldEmail = $user->email;
                 $oldPhone = $user->phone_number;
                 
-                \Log::info('Old values before update:', [
-                    'old_name' => $oldName,
-                    'old_email' => $oldEmail,
-                    'old_phone' => $oldPhone,
-                    'old_role' => $oldRole,
-                    'old_status' => $oldStatus,
-                    'new_data' => $userData
-                ]);
                 
                 $user->update($userData);
                 
@@ -457,13 +442,6 @@ class UserController extends Controller
                 $newEmail = $user->email;
                 $newPhone = $user->phone_number;
                 
-                \Log::info('After update values:', [
-                    'old_name' => $oldName, 'new_name' => $newName,
-                    'old_email' => $oldEmail, 'new_email' => $newEmail,
-                    'old_phone' => $oldPhone, 'new_phone' => $newPhone,
-                    'old_role' => $oldRole, 'new_role' => $newRole,
-                    'old_status' => $oldStatus, 'new_status' => $newStatus
-                ]);
                 
                 // Log user update with organized change detection
                 $changes = [];
@@ -498,25 +476,6 @@ class UserController extends Controller
                     $changes[] = "• Password: <span class='text-green-400 font-semibold'>[Changed]</span>";
                 }
                 
-                // Debug: Log what changes were detected
-                \Log::info('Changes detected:', [
-                    'changes_count' => count($changes),
-                    'changes' => $changes,
-                    'old_values' => [
-                        'name' => $oldName,
-                        'email' => $oldEmail,
-                        'phone' => $oldPhone,
-                        'role' => $oldRole,
-                        'status' => $oldStatus
-                    ],
-                    'new_values' => [
-                        'name' => $newName,
-                        'email' => $newEmail,
-                        'phone' => $newPhone,
-                        'role' => $newRole,
-                        'status' => $newStatus
-                    ]
-                ]);
                 
                 $changeDescription = !empty($changes) ? "\n" . implode("\n", $changes) : 'profile information';
                 
@@ -556,7 +515,6 @@ class UserController extends Controller
                     'created_by' => auth()->id()
                 ];
                 
-                \Log::info('User data before creation:', $userData);
                 
                 $user = User::create($userData);
                 
@@ -592,13 +550,6 @@ class UserController extends Controller
             $currentUser = auth()->user();
             $creatorName = $currentUser ? $currentUser->name : 'System';
             
-            // Debug logging
-            \Log::info('Creator info:', [
-                'user_created_by' => $user->created_by,
-                'current_user_id' => $currentUser ? $currentUser->id : null,
-                'current_user_name' => $currentUser ? $currentUser->name : null,
-                'creator_name' => $creatorName
-            ]);
             
             return response()->json([
                 'success' => true,
@@ -656,8 +607,6 @@ class UserController extends Controller
     public function updateAjax(Request $request, User $user)
     {
         try {
-            // Debug: Log all incoming data
-            \Log::info('updateAjax called with data:', $request->all());
             
             $validationRules = [
                 'name' => 'required|string|max:100',
@@ -686,7 +635,6 @@ class UserController extends Controller
                 $userData['password'] = bcrypt($request->password);
             }
             
-            \Log::info('User data before update:', $userData);
             
             $user->update($userData);
             
@@ -727,11 +675,9 @@ class UserController extends Controller
 
     public function deleteUserAjax(Request $request)
     {
-        \Log::info('deleteUserAjax method called', ['request_data' => $request->all()]);
         
         try {
             $userId = $request->get('user_id');
-            \Log::info('User ID from request', ['user_id' => $userId]);
             $user = User::find($userId);
             
             if (!$user) {
@@ -849,7 +795,6 @@ class UserController extends Controller
             $newPassword = \Illuminate\Support\Str::random(10);
             $user->update(['password' => bcrypt($newPassword)]);
             
-            // TODO: Send email with new password
             // For now, just return the password in response
             return response()->json([
                 'success' => true, 
@@ -864,7 +809,6 @@ class UserController extends Controller
 
     public function getUserActivity(Request $request)
     {
-        \Log::info('getUserActivity called with:', $request->all());
         
         $request->validate([
             'user_id' => 'required|exists:users,id'
@@ -872,7 +816,6 @@ class UserController extends Controller
 
         try {
             $user = User::with(['role', 'orders'])->findOrFail($request->user_id);
-            \Log::info('User found:', ['user_id' => $user->id, 'role' => $user->role->name ?? 'No Role']);
             
             $activityData = [
                 'created_at' => $user->created_at->format('M d, Y'),

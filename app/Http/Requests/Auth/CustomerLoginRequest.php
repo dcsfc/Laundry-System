@@ -46,7 +46,7 @@ class CustomerLoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => 'Invalid email or password.',
             ]);
         }
 
@@ -57,7 +57,7 @@ class CustomerLoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => 'Please use the admin login for staff accounts.',
+                'email' => 'Invalid email or password.',
             ]);
         }
 

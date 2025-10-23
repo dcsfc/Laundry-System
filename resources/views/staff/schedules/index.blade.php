@@ -99,9 +99,6 @@
     </div>
 
     <!-- All Schedules Table -->
-    <!-- VIEW DEBUG: $allSchedules count = {{ count($allSchedules ?? []) }} -->
-    <!-- VIEW DEBUG: Is array? {{ is_array($allSchedules ?? null) ? 'YES' : 'NO' }} -->
-    <!-- VIEW DEBUG: First item = {{ !empty($allSchedules) && is_array($allSchedules) && count($allSchedules) > 0 ? json_encode($allSchedules[0]) : 'EMPTY OR NOT ARRAY' }} -->
     
     <x-data-table
         :columns="$scheduleColumns"

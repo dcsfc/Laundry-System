@@ -4,10 +4,6 @@
  * 
  * This file is compiled from the modular table system for browser compatibility
  */
-
-// ========== UTILITIES ==========
-
-// Debounce utility for performance optimization
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -20,17 +16,14 @@ function debounce(func, wait) {
     };
 }
 
-// Get nested value from object using dot notation
 function getNestedValue(obj, path) {
     return path.split('.').reduce((current, key) => current?.[key], obj);
 }
 
-// Check if a value is a valid date
 function isDate(value) {
     return value instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value)));
 }
 
-// Format date string for display
 function formatDate(dateString) {
     if (!dateString) return 'N/A';
     try {
@@ -40,7 +33,6 @@ function formatDate(dateString) {
     }
 }
 
-// Sort data by column with direction
 function sortData(data, column, direction, getNestedValue, isDate) {
     return [...data].sort((a, b) => {
         let aVal = getNestedValue(a, column);
@@ -63,7 +55,6 @@ function sortData(data, column, direction, getNestedValue, isDate) {
     });
 }
 
-// Generate page numbers for pagination
 function getPageNumbers(currentPage, totalPages, maxVisible = 7) {
     const pages = [];
     
@@ -84,7 +75,6 @@ function getPageNumbers(currentPage, totalPages, maxVisible = 7) {
     return pages;
 }
 
-// Validate table data
 function validateTableData(data) {
     if (!Array.isArray(data)) {
         console.error('Table data must be an array');
@@ -93,10 +83,6 @@ function validateTableData(data) {
     return data;
 }
 
-// ========== ACTION MENU MANAGER ==========
-// ActionMenuManager is now in a separate file: action-menu.js
-
-// ========== BASE TABLE CLASS ==========
 
 class BaseTable {
     constructor(data, pageSize = 10, options = {}) {
@@ -147,7 +133,6 @@ class BaseTable {
     }
     
     setupPortalSystem() {
-        // Portal system is now handled by ActionMenuManager
     }
     
     openActionMenu(rowId, triggerElement, rowData) {
@@ -284,7 +269,6 @@ class BaseTable {
     }
     
     setupEventListeners() {
-        // Event listeners are now handled by ActionMenuManager
     }
     
     clearAllFilters() {
@@ -315,7 +299,6 @@ BaseTable.prototype.debouncedSearch = debounce(function() {
     this.applyFilters();
 }, 300);
 
-// ========== USERS TABLE ==========
 
 function usersTable(data, pageSize = 10) {
     const baseTable = new BaseTable(data, pageSize, {
@@ -700,7 +683,6 @@ function usersTable(data, pageSize = 10) {
     };
 }
 
-// ========== ORDERS TABLE ==========
 
 function ordersTable(data, pageSize = 10) {
     const baseTable = new BaseTable(data, pageSize, {
@@ -934,7 +916,6 @@ function ordersTable(data, pageSize = 10) {
     };
 }
 
-// ========== GLOBAL EXPORTS ==========
 
 window.BaseTable = BaseTable;
 window.usersTable = usersTable;
@@ -1468,4 +1449,3 @@ function dataTable(data, columns, actions, pageSize = 10) {
 
 window.dataTable = dataTable;
 
-// Note: ActionMenuManager is now in action-menu.js

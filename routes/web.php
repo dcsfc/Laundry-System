@@ -282,7 +282,6 @@ Route::middleware(['auth:admin,customer,web'])->group(function () {
     });
 });
 
-// Debug route for customer schedules
 Route::get('/debug-customer-schedules', function () {
     $currentUser = auth()->user();
     
@@ -314,7 +313,6 @@ Route::get('/debug-customer-schedules', function () {
     return response()->json($debug, 200, [], JSON_PRETTY_PRINT);
 })->middleware('auth:customer');
 
-// Debug route for staff schedules
 Route::get('/debug-staff-schedule/{id}', function ($id) {
     try {
         $order = \App\Models\Order::findOrFail($id);

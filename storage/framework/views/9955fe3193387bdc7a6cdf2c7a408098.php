@@ -15,7 +15,6 @@
     $isStaff = $userRole === 'staff';
     $isCustomer = $userRole === 'customer';
     
-    // Debug: Check if user is authenticated
     if (!$user) {
         $userRole = 'customer';
         $isSuperAdmin = false;

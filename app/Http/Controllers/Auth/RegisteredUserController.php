@@ -33,6 +33,7 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'phone_number' => ['required', 'string', 'max:20'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -48,6 +49,7 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
             'role_id' => $customerRoleId,
             'status' => 'active',
@@ -55,8 +57,10 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
+        // Don't auto-login after registration
+        // Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // Stay on register page with success message
+        return redirect()->route('register')->with('success', 'Account created successfully! Please log in to continue.');
     }
 }

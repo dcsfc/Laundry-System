@@ -47,14 +47,6 @@
 @endpush
 
 @section('content')
-<!-- Debug: Check data being passed -->
-@if(config('app.debug'))
-<script>
-    console.log('Users data from controller:', @json($users));
-    console.log('Columns data:', @json($columns));
-    console.log('Actions data:', @json($actions));
-</script>
-@endif
 
 <div class="table-container" 
      x-data="usersTable(@js($users), 10)"

@@ -3,7 +3,6 @@
  * Handles all announcement-related functionality including modals, CRUD operations, and dashboard widgets
  */
 
-// ===== GLOBAL ANNOUNCEMENTS MANAGER =====
 class AnnouncementsManager {
     constructor() {
         this.isModalOpen = false;
@@ -46,7 +45,6 @@ class AnnouncementsManager {
         }
     }
 
-    // ===== MODAL OPERATIONS =====
     openCreateModal() {
         this.isEdit = false;
         this.isModalOpen = true;
@@ -90,7 +88,6 @@ class AnnouncementsManager {
         this.form = this.getDefaultForm();
     }
 
-    // ===== API OPERATIONS =====
     async loadAnnouncement(id) {
         try {
             this.isLoading = true;
@@ -249,7 +246,6 @@ class AnnouncementsManager {
         }
     }
 
-    // ===== DASHBOARD WIDGET OPERATIONS =====
     toggleExpanded() {
         this.isExpanded = !this.isExpanded;
     }
@@ -266,7 +262,6 @@ class AnnouncementsManager {
         }
     }
 
-    // ===== UTILITY FUNCTIONS =====
     getCSRFToken() {
         const token = document.querySelector('meta[name="csrf-token"]');
         return token ? token.getAttribute('content') : '';
@@ -312,7 +307,6 @@ class AnnouncementsManager {
         }, 3000);
     }
 
-    // ===== VALIDATION =====
     validateForm() {
         this.errors = {};
         
@@ -345,7 +339,6 @@ class AnnouncementsManager {
     }
 }
 
-// ===== DASHBOARD WIDGET CLASS =====
 class AnnouncementsWidget {
     constructor() {
         this.isExpanded = false;
@@ -401,7 +394,6 @@ class AnnouncementsWidget {
     }
 }
 
-// ===== ALPINE.JS COMPONENTS =====
 function announcementsManager() {
     return {
         isModalOpen: false,
@@ -638,7 +630,6 @@ function announcementsWidget() {
     };
 }
 
-// ===== GLOBAL FUNCTIONS FOR COMPATIBILITY =====
 window.announcementsManager = announcementsManager;
 window.announcementsWidget = announcementsWidget;
 
@@ -668,7 +659,6 @@ window.createAnnouncement = function() {
     manager.openCreateModal();
 };
 
-// ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize any global announcement functionality
     console.log('Announcements system initialized');
@@ -687,7 +677,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// ===== EXPORT FOR MODULE USAGE =====
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         AnnouncementsManager,

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <title>Sign Up - Latino Laundry</title>
 
     <!-- Fonts -->
@@ -626,7 +626,7 @@
         <div class="register-card">
             <!-- Logo -->
             <div class="logo">
-                <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Latino Laundry">
+                <img src="<?php echo e(asset('images/logo-removebg-preview.png')); ?>" alt="Latino Laundry">
             </div>
 
             <!-- Header -->
@@ -636,19 +636,20 @@
             </div>
 
             <!-- Session Status -->
-            @if (session('status'))
+            <?php if(session('status')): ?>
                 <div class="alert alert-error">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="12"></line>
                         <line x1="12" y1="16" x2="12.01" y2="16"></line>
                     </svg>
-                    {{ session('status') }}
+                    <?php echo e(session('status')); ?>
+
                 </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Success Toast Notification -->
-            @if (session('success'))
+            <?php if(session('success')): ?>
                 <div class="toast-notification success" id="successToast">
                     <div class="toast-content">
                         <div class="toast-icon">
@@ -659,75 +660,75 @@
                         </div>
                         <div class="toast-message">
                             <h4>Account Created Successfully!</h4>
-                            <p>{{ session('success') }}</p>
+                            <p><?php echo e(session('success')); ?></p>
                         </div>
                     </div>
                     <div class="toast-progress">
                         <div class="toast-progress-bar"></div>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Registration Form -->
-            <form method="POST" action="{{ route('register') }}" id="registerForm" class="register-form">
-                @csrf
+            <form method="POST" action="<?php echo e(route('register')); ?>" id="registerForm" class="register-form">
+                <?php echo csrf_field(); ?>
 
                 <!-- Name Field -->
-                <div class="floating-input-group {{ $errors->has('name') ? 'error' : '' }}">
+                <div class="floating-input-group <?php echo e($errors->has('name') ? 'error' : ''); ?>">
                     <input 
                         type="text"
                         id="name"
                         name="name"
-                        value="{{ old('name') }}"
+                        value="<?php echo e(old('name')); ?>"
                         placeholder=" "
                         required
                         autocomplete="name"
-                        class="floating-input {{ old('name') ? 'has-value' : '' }}"
+                        class="floating-input <?php echo e(old('name') ? 'has-value' : ''); ?>"
                     >
                     <label for="name" class="floating-label">Full Name</label>
-                    @if($errors->has('name'))
-                        <span class="error-text">{{ $errors->first('name') }}</span>
-                    @endif
+                    <?php if($errors->has('name')): ?>
+                        <span class="error-text"><?php echo e($errors->first('name')); ?></span>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Email Field -->
-                <div class="floating-input-group {{ $errors->has('email') ? 'error' : '' }}">
+                <div class="floating-input-group <?php echo e($errors->has('email') ? 'error' : ''); ?>">
                     <input 
                         type="email"
                         id="email"
                         name="email"
-                        value="{{ old('email') }}"
+                        value="<?php echo e(old('email')); ?>"
                         placeholder=" "
                         required
                         autocomplete="email"
-                        class="floating-input {{ old('email') ? 'has-value' : '' }}"
+                        class="floating-input <?php echo e(old('email') ? 'has-value' : ''); ?>"
                     >
                     <label for="email" class="floating-label">Email Address</label>
-                    @if($errors->has('email'))
-                        <span class="error-text">{{ $errors->first('email') }}</span>
-                    @endif
+                    <?php if($errors->has('email')): ?>
+                        <span class="error-text"><?php echo e($errors->first('email')); ?></span>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Phone Number Field -->
-                <div class="floating-input-group {{ $errors->has('phone_number') ? 'error' : '' }}">
+                <div class="floating-input-group <?php echo e($errors->has('phone_number') ? 'error' : ''); ?>">
                     <input 
                         type="tel"
                         id="phone_number"
                         name="phone_number"
-                        value="{{ old('phone_number') }}"
+                        value="<?php echo e(old('phone_number')); ?>"
                         placeholder=" "
                         required
                         autocomplete="tel"
-                        class="floating-input {{ old('phone_number') ? 'has-value' : '' }}"
+                        class="floating-input <?php echo e(old('phone_number') ? 'has-value' : ''); ?>"
                     >
                     <label for="phone_number" class="floating-label">Phone Number</label>
-                    @if($errors->has('phone_number'))
-                        <span class="error-text">{{ $errors->first('phone_number') }}</span>
-                    @endif
+                    <?php if($errors->has('phone_number')): ?>
+                        <span class="error-text"><?php echo e($errors->first('phone_number')); ?></span>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Password Field -->
-                <div class="floating-input-group {{ $errors->has('password') ? 'error' : '' }}">
+                <div class="floating-input-group <?php echo e($errors->has('password') ? 'error' : ''); ?>">
                     <input 
                         type="password"
                         id="password"
@@ -738,9 +739,9 @@
                         class="floating-input"
                     >
                     <label for="password" class="floating-label">Password</label>
-                    @if($errors->has('password'))
-                        <span class="error-text">{{ $errors->first('password') }}</span>
-                    @endif
+                    <?php if($errors->has('password')): ?>
+                        <span class="error-text"><?php echo e($errors->first('password')); ?></span>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Password Strength Indicator -->
@@ -752,7 +753,7 @@
                 </div>
 
                 <!-- Confirm Password Field -->
-                <div class="floating-input-group {{ $errors->has('password_confirmation') ? 'error' : '' }}">
+                <div class="floating-input-group <?php echo e($errors->has('password_confirmation') ? 'error' : ''); ?>">
                     <input 
                         type="password"
                         id="password_confirmation"
@@ -763,9 +764,9 @@
                         class="floating-input"
                     >
                     <label for="password_confirmation" class="floating-label">Confirm Password</label>
-                    @if($errors->has('password_confirmation'))
-                        <span class="error-text">{{ $errors->first('password_confirmation') }}</span>
-                    @endif
+                    <?php if($errors->has('password_confirmation')): ?>
+                        <span class="error-text"><?php echo e($errors->first('password_confirmation')); ?></span>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Password Match Indicator -->
@@ -800,7 +801,7 @@
 
             <!-- Login Link -->
             <div class="login-link">
-                <p>Already have an account? <a href="{{ route('login') }}" class="login-text">Sign in</a></p>
+                <p>Already have an account? <a href="<?php echo e(route('login')); ?>" class="login-text">Sign in</a></p>
             </div>
         </div>
 
@@ -928,7 +929,7 @@
                     
                     // Redirect to login page after animation completes
                     setTimeout(() => {
-                        window.location.href = '{{ route("login") }}';
+                        window.location.href = '<?php echo e(route("login")); ?>';
                     }, 300); // Wait for slideOut animation to complete
                 }, 4000); // Show for 4 seconds
             }
@@ -952,4 +953,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH C:\xampp\htdocs\Laundry Sytem\Thesis\resources\views/auth/register.blade.php ENDPATH**/ ?>

@@ -1,4 +1,4 @@
-/* Admin Login Dark Theme CSS */
+/* Administrator Login Dark Theme CSS */
 
 /* CSS Variables for Dark Theme */
 :root {
@@ -203,30 +203,6 @@ body::after {
   z-index: 1;
 }
 
-.password-toggle {
-  position: absolute;
-  right: 1rem;
-  color: #6B7280;
-  cursor: pointer;
-  z-index: 1;
-  transition: color 0.2s ease;
-  width: 1rem;
-  height: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.password-toggle:hover {
-  color: var(--border-focus);
-}
-
-.password-toggle svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
 
 .form-input {
   width: 100%;
@@ -239,25 +215,21 @@ body::after {
   font-size: 0.9375rem; /* 15px - slightly smaller for airy feel */
   font-weight: 400;
   transition: all 0.2s ease;
-  outline: none;
-}
-
-.form-input:hover {
-  border-color: #9CA3AF;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .form-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-focus) !important;
+}
+
+.form-input:hover {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); /* focus:ring-2 focus:ring-blue-100 */
 }
 
-.form-input:focus + .input-icon {
-  color: var(--border-focus);
-}
 
-.form-group.focused .input-icon {
-  color: var(--border-focus);
-}
 
 .form-input.error {
   border-color: var(--error-color);
@@ -357,33 +329,35 @@ body::after {
 
 .button-text {
   display: block;
+  transition: opacity 0.3s ease;
 }
 
 .button-loader {
   display: none;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .spinner {
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.button-arrow {
-  transition: transform 0.2s ease;
-}
-
-.login-button:hover .button-arrow {
-  transform: translateX(2px);
+  animation: spin 0.8s linear infinite !important;
+  animation-duration: 0.8s !important;
+  animation-iteration-count: infinite !important;
 }
 
 @keyframes spin {
-  to {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
     transform: rotate(360deg);
   }
 }
@@ -512,7 +486,6 @@ body::after {
 }
 
 /* Focus States for Accessibility */
-.form-input:focus,
 .login-button:focus,
 .forgot-link:focus,
 .back-link:focus {

@@ -5,7 +5,6 @@
     $isStaff = $userRole === 'staff';
     $isCustomer = $userRole === 'customer';
     
-    // Debug: Check if user is authenticated
     if (!Auth::check()) {
         $userRole = 'customer';
         $isSuperAdmin = false;
@@ -15,7 +14,6 @@
     }
 
     // Define color schemes based on role
-    // Debug: Log the role for debugging
     \Log::info('User Role: ' . $userRole . ', isSuperAdmin: ' . ($isSuperAdmin ? 'true' : 'false'));
     
     if ($isSuperAdmin) {

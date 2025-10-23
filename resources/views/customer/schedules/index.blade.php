@@ -1,6 +1,6 @@
 @extends('layouts.sidebar')
 
-@section('title', 'My Schedules')
+@section('title', 'Schedules')
 
 @section('content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -9,7 +9,7 @@
     <div class="mb-8">
         <div class="flex items-center justify-between">
                 <div>
-                <h1 class="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-3">My Schedules</h1>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-3">Schedules</h1>
                 <p class="text-slate-400 text-lg">Manage your laundry pickup and delivery appointments</p>
                 </div>
                 <div class="flex items-center gap-3">

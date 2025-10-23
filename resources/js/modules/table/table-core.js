@@ -84,7 +84,6 @@ export class BaseTable {
         this.originalData = validateTableData(this.originalData);
     }
     
-    // ========== PORTAL SYSTEM ==========
     
     /**
      * Setup portal system for action menus
@@ -151,7 +150,6 @@ export class BaseTable {
         }
     }
     
-    // ===== CORE FUNCTIONALITY =====
     
     /**
      * Perform search

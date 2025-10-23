@@ -30,24 +30,16 @@ class RedirectIfAuthenticated
                 $user = Auth::user();
                 $role = $user->role->name ?? 'customer';
                 
-                // Debug: Log the role information
-                \Log::info('RedirectIfAuthenticated - User ID: ' . $user->id . ', Name: ' . $user->name . ', Role: ' . $role);
-                
                 switch ($role) {
                     case 'superadmin':
-                        \Log::info('RedirectIfAuthenticated: Redirecting superadmin to superadmin dashboard');
                         return redirect()->route('superadmin.dashboard');
                     case 'administrator':
-                        \Log::info('RedirectIfAuthenticated: Redirecting administrator to admin dashboard');
                         return redirect()->route('admin.dashboard');
                     case 'staff':
-                        \Log::info('RedirectIfAuthenticated: Redirecting staff to staff dashboard');
                         return redirect()->route('staff.dashboard');
                     case 'customer':
-                        \Log::info('RedirectIfAuthenticated: Redirecting customer to customer dashboard');
                         return redirect()->route('customer.dashboard');
                     default:
-                        \Log::info('RedirectIfAuthenticated: Unknown role, redirecting to customer dashboard. Role: ' . $role);
                         return redirect()->route('customer.dashboard');
                 }
             }

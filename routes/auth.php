@@ -25,12 +25,12 @@ Route::post('/login', [CustomerAuthController::class, 'store'])
     ->middleware('guest')
     ->name('customer.login');
 
-// Admin Login Routes
-Route::get('/admin/login', [AdminAuthController::class, 'create'])
+// Administrator Login Routes
+Route::get('/administrator/login', [AdminAuthController::class, 'create'])
     ->middleware('guest')
     ->name('admin.login');
 
-Route::post('/admin/login', [AdminAuthController::class, 'store'])
+Route::post('/administrator/login', [AdminAuthController::class, 'store'])
     ->middleware('guest');
 
 // Logout Routes

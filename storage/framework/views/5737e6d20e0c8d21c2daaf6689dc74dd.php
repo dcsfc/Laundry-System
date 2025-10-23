@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
-    <title>Admin Login - Latino Laundry</title>
+    <title>Administrator Login - Latino Laundry</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,7 +24,7 @@
 
             <!-- Header -->
             <div class="header">
-                <h1>Admin Portal</h1>
+                <h1>Administrator Portal</h1>
                 <p>Access the management system</p>
             </div>
 
@@ -100,10 +100,6 @@ endif;
 unset($__errorArgs, $__bag); ?>"
                             placeholder="Enter your password"
                         >
-                        <svg class="password-toggle" id="passwordToggle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
                     </div>
                     <?php $__errorArgs = ['password'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -126,20 +122,13 @@ unset($__errorArgs, $__bag); ?>
 
                 <!-- Login Button -->
                 <button type="submit" id="loginBtn" class="login-button">
-                    <span class="button-text">Access Admin Portal</span>
+                    <span class="button-text">Access Administrator Portal</span>
                     <div class="button-loader">
                         <div class="spinner"></div>
                     </div>
-                    <svg class="button-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
                 </button>
             </form>
 
-            <!-- Back to Home Link -->
-            <div class="back-home">
-                <a href="<?php echo e(route('login')); ?>" class="back-link">Customer Login</a>
-            </div>
 
             <!-- Copyright -->
             <div class="copyright">
@@ -149,7 +138,7 @@ unset($__errorArgs, $__bag); ?>
     </div>
 
     <script>
-        // Admin Login Form Handling
+        // Administrator Login Form Handling
         document.getElementById('adminLoginForm').addEventListener('submit', function() {
             const btn = document.getElementById('loginBtn');
             const buttonText = btn.querySelector('.button-text');
@@ -158,48 +147,14 @@ unset($__errorArgs, $__bag); ?>
             btn.disabled = true;
             buttonText.style.display = 'none';
             buttonLoader.style.display = 'flex';
-        });
-
-        // Enhanced input focus effects
-        const inputs = document.querySelectorAll('.form-input');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.parentElement.classList.add('focused');
-            });
             
-            input.addEventListener('blur', function() {
-                this.parentElement.parentElement.classList.remove('focused');
-            });
+            // Test: Add a small delay to see the spinner working
+            setTimeout(() => {
+                console.log('Spinner should be visible now');
+            }, 100);
         });
 
-        // Password toggle functionality
-        const passwordToggle = document.getElementById('passwordToggle');
-        const passwordInput = document.getElementById('password');
-        
-        if (passwordToggle && passwordInput) {
-            passwordToggle.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                
-                // Toggle icon using proper SVG structure
-                if (type === 'text') {
-                    // Show eye-slash icon (password hidden)
-                    this.innerHTML = `
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
-                    `;
-                } else {
-                    // Show eye icon (password visible)
-                    this.innerHTML = `
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    `;
-                }
-                
-                // Ensure the icon maintains its size and position
-                this.style.width = '1rem';
-                this.style.height = '1rem';
-            });
-        }
+
 
         // Smooth fade-in animation on page load
         document.addEventListener('DOMContentLoaded', function() {
